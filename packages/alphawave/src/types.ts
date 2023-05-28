@@ -10,7 +10,7 @@ export interface PromptResponseValidator {
 }
 
 export interface PromptCompletionOptions {
-    type: 'text' | 'chat';
+    completion_type: 'text' | 'chat';
     model: string;
     max_input_tokens?: number;
     temperature?: number;
