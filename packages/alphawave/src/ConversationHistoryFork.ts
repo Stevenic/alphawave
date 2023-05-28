@@ -7,18 +7,18 @@ import { Message, PromptMemory } from "promptrix";
  * conversation history is cloned into the fork, and any changes made to the fork will not
  * affect the original history.
  */
-export class ConversationHistoryMemoryFork implements PromptMemory {
+export class ConversationHistoryFork implements PromptMemory {
     private readonly _memory: PromptMemory;
     private readonly _historyVariable: string;
     private readonly _inputVariable: string;
-    private _history: Array<Message>;
+    private _history: Message[];
     private _input: string;
 
     public constructor(memory: PromptMemory, historyVariable: string, inputVariable: string) {
         this._memory = memory;
         this._historyVariable = historyVariable;
         this._inputVariable = inputVariable;
-        this._history = historyVariable && memory.has(historyVariable) ? (memory.get(historyVariable) as Array<Message>).slice() : [];
+        this._history = historyVariable && memory.has(historyVariable) ? JSON.parse(JSON.stringify(memory.get(historyVariable))) : [];
         this._input = inputVariable && memory.has(inputVariable) ? (memory.get(inputVariable) as string) : '';
     }
 
@@ -28,7 +28,7 @@ export class ConversationHistoryMemoryFork implements PromptMemory {
 
     public get<TValue = any>(key: string): TValue {
         if (key === this._historyVariable) {
-            return this._history as any;
+            return JSON.parse(JSON.stringify(this._history));
         } else if (key === this._inputVariable) {
             return this._input as any;
         } else {
@@ -38,7 +38,7 @@ export class ConversationHistoryMemoryFork implements PromptMemory {
 
     public set<TValue = any>(key: string, value: TValue): void {
         if (key === this._historyVariable) {
-            this._history = (value as any) ?? [];
+            this._history = Array.isArray(value) ? JSON.parse(JSON.stringify(value)) : [];
         } else if (key === this._inputVariable) {
             this._input = (value as any) ?? '';
         } else {

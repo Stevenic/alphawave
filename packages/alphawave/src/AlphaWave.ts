@@ -1,7 +1,7 @@
 import { FunctionRegistry, GPT3Tokenizer, Message, PromptFunctions, PromptMemory, PromptSection, Tokenizer, VolatileMemory } from "promptrix";
 import { PromptCompletionClient, PromptCompletionOptions, PromptResponse, PromptResponseValidation, PromptResponseValidator } from "./types";
 import { DefaultResponseValidator } from "./DefaultResponseValidator";
-import { ConversationHistoryMemoryFork } from "./ConversationHistoryMemoryFork";
+import { ConversationHistoryFork } from "./ConversationHistoryFork";
 
 
 export interface AlphaWaveOptions {
@@ -9,25 +9,27 @@ export interface AlphaWaveOptions {
     prompt: PromptSection;
     prompt_options: PromptCompletionOptions;
     functions?: PromptFunctions;
+    history_variable?: string;
+    input_variable?: string;
+    max_history_messages?: number;
+    max_repair_attempts?: number;
     memory?: PromptMemory;
     tokenizer?: Tokenizer;
     validator?: PromptResponseValidator;
-    max_repair_attempts?: number;
-    history_variable?: string;
-    input_variable?: string;
 }
 
 export interface ConfiguredAlphaWaveOptions {
     client: PromptCompletionClient;
-    prompt: PromptSection;
-    prompt_options: PromptCompletionOptions;
-    functions: PromptFunctions;
-    memory: PromptMemory;
-    tokenizer: Tokenizer;
-    validator: PromptResponseValidator;
-    max_repair_attempts: number;
     history_variable: string;
     input_variable: string;
+    functions: PromptFunctions;
+    max_history_messages: number;
+    max_repair_attempts: number;
+    memory: PromptMemory;
+    prompt: PromptSection;
+    prompt_options: PromptCompletionOptions;
+    tokenizer: Tokenizer;
+    validator: PromptResponseValidator;
 }
 
 export class AlphaWave {
@@ -36,12 +38,13 @@ export class AlphaWave {
     public constructor(options: AlphaWaveOptions) {
         this.options = Object.assign({
             functions: new FunctionRegistry(),
+            history_variable: 'history',
+            input_variable: 'input',
+            max_history_messages: 10,
+            max_repair_attempts: 3,
             memory: new VolatileMemory(),
             tokenizer: new GPT3Tokenizer(),
-            validator: new DefaultResponseValidator(),
-            max_repair_attempts: 3,
-            history_variable: 'history',
-            input_variable: 'input'
+            validator: new DefaultResponseValidator()
         }, options) as ConfiguredAlphaWaveOptions;
     }
 
@@ -51,7 +54,7 @@ export class AlphaWave {
         // Update/get user input
         if (input_variable) {
             if (input) {
-                memory.set(input_variable, memory);
+                memory.set(input_variable, input);
             } else {
                 input = memory.has(input_variable) ? memory.get(input_variable) : ''
             }
@@ -81,7 +84,7 @@ export class AlphaWave {
             }
 
             // Fork the conversation history and update the fork with the invalid response.
-            const fork = new ConversationHistoryMemoryFork(memory, history_variable, input_variable);
+            const fork = new ConversationHistoryFork(memory, history_variable, input_variable);
             this.addInputToHistory(fork, history_variable, input!);
             this.addResponseToHistory(fork, history_variable, result.response);
 
@@ -110,6 +113,9 @@ export class AlphaWave {
         if (variable && input.length > 0) {
             const history: Message[] = memory.get(variable) ?? [];
             history.push({ role: 'user', content: input });
+            if (history.length > this.options.max_history_messages) {
+                history.splice(0, history.length - this.options.max_history_messages);
+            }
             memory.set(variable, history);
         }
     }
@@ -118,11 +124,14 @@ export class AlphaWave {
         if (variable) {
             const history: Message[] = memory.get(variable) ?? [];
             history.push(message);
+            if (history.length > this.options.max_history_messages) {
+                history.splice(0, history.length - this.options.max_history_messages);
+            }
             memory.set(variable, history);
         }
     }
 
-    private async repairResponse(fork: ConversationHistoryMemoryFork, functions: PromptFunctions, tokenizer: Tokenizer, validation: PromptResponseValidation, remaining_attempts: number): Promise<PromptResponse> {
+    private async repairResponse(fork: ConversationHistoryFork, functions: PromptFunctions, tokenizer: Tokenizer, validation: PromptResponseValidation, remaining_attempts: number): Promise<PromptResponse> {
         const { client, prompt, prompt_options, input_variable, validator } = this.options;
 
         // Are we out of attempts?

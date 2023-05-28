@@ -18,7 +18,7 @@ describe("TestClient", () => {
         it("should create a TestClient with default params", () => {
             const client = new TestClient();
             assert.equal(client.status, 'success');
-            assert.equal(client.response, 'Hello World');
+            assert.deepEqual(client.response, { role: 'assistant', content: 'Hello World' });
         });
 
         it("should create a TestClient with custom params", () => {
@@ -33,7 +33,7 @@ describe("TestClient", () => {
             const client = new TestClient();
             const response = await client.completePrompt(memory, functions, tokenizer, prompt, options);
             assert.equal(response.status, 'success');
-            assert.equal(response.response, 'Hello World');
+            assert.deepEqual(response.response, { role: 'assistant', content: 'Hello World' });
         });
     });
 });
