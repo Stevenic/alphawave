@@ -1,15 +1,18 @@
 {
   "extension": [
-    ".js"
+    ".ts"
   ],
   "include": [
-    "lib/**/*.js"
+    "src/**"
   ],
   "exclude": [
     "**/node_modules/**",
     "**/tests/**",
     "**/coverage/**",
-    "**/*.d.ts"
+    "**/*.d.ts",
+    "src/index.ts",
+    "**/*.spec.ts",
+    "**/internals/**"
   ],
   "reporter": [
     "html"

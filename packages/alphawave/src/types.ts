@@ -23,8 +23,10 @@ export interface PromptCompletionOptions {
     best_of?: number;
 }
 
+export type PromptResponseStatus = 'success' | 'error' | 'rate_limited' | 'invalid_response' | 'too_long';
+
 export interface PromptResponse {
-    status: 'success' | 'error' | 'rate_limited' | 'invalid_response' | 'too_long';
+    status: PromptResponseStatus;
     response: Message|string;
 }
 
