@@ -61,7 +61,7 @@ export class AlphaWave {
 
         try {
             // Ask client to complete prompt
-            const result = await client.completePrompt(prompt, prompt_options);
+            const result = await client.completePrompt(memory, functions, tokenizer, prompt, prompt_options);
             if (result.status !== 'success') {
                 return result;
             }
@@ -123,7 +123,7 @@ export class AlphaWave {
     }
 
     private async repairResponse(fork: ConversationHistoryMemoryFork, functions: PromptFunctions, tokenizer: Tokenizer, validation: PromptResponseValidation, remaining_attempts: number): Promise<PromptResponse> {
-        const { client, prompt, prompt_options, history_variable, input_variable, validator } = this.options;
+        const { client, prompt, prompt_options, input_variable, validator } = this.options;
 
         // Are we out of attempts?
         const feedback = validation.feedback ?? 'The response was invalid. Try another strategy.';
@@ -143,7 +143,7 @@ export class AlphaWave {
         }
 
         // Ask client to complete prompt
-        const result = await client.completePrompt(prompt, prompt_options);
+        const result = await client.completePrompt(fork, functions, tokenizer, prompt, prompt_options);
         if (result.status !== 'success') {
             return result;
         }

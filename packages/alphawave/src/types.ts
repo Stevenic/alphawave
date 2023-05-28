@@ -2,7 +2,7 @@ import { Message, PromptFunctions, PromptMemory, PromptSection, Tokenizer } from
 
 
 export interface PromptCompletionClient {
-    completePrompt(prompt: PromptSection, options: PromptCompletionOptions): Promise<PromptResponse>;
+    completePrompt(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, prompt: PromptSection, options: PromptCompletionOptions): Promise<PromptResponse>;
 }
 
 export interface PromptResponseValidator {
@@ -24,7 +24,7 @@ export interface PromptCompletionOptions {
 }
 
 export interface PromptResponse {
-    status: 'success' | 'error' | 'rate_limited' | 'invalid_response';
+    status: 'success' | 'error' | 'rate_limited' | 'invalid_response' | 'too_long';
     response: Message|string;
 }
 
