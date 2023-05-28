@@ -45,13 +45,21 @@ export class AlphaWave {
         }, options) as ConfiguredAlphaWaveOptions;
     }
 
-    public async completePrompt(): Promise<PromptResponse> {
-        const { client, prompt, prompt_options, functions, memory, tokenizer, validator, max_repair_attempts, history_variable, input_variable } = this.options;
+    public async completePrompt(input?: string): Promise<PromptResponse> {
+        const { client, prompt, prompt_options, memory, functions, tokenizer, validator, max_repair_attempts, history_variable, input_variable } = this.options;
+
+        // Update/get user input
+        if (input_variable) {
+            if (input) {
+                memory.set(input_variable, memory);
+            } else {
+                input = memory.has(input_variable) ? memory.get(input_variable) : ''
+            }
+        } else if (!input) {
+            input = '';
+        }
 
         try {
-            // Get user input
-            const input: string = input_variable && memory.has(input_variable) ? memory.get(input_variable) : '';
-
             // Ask client to complete prompt
             const result = await client.completePrompt(prompt, prompt_options);
             if (result.status !== 'success') {
@@ -67,14 +75,14 @@ export class AlphaWave {
             const validation = await validator.validateResponse(memory, functions, tokenizer, result);
             if (validation.isValid) {
                 // Update history and return
-                this.addInputToHistory(memory, history_variable, input);
+                this.addInputToHistory(memory, history_variable, input!);
                 this.addResponseToHistory(memory, history_variable, result.response);
                 return result;
             }
 
             // Fork the conversation history and update the fork with the invalid response.
             const fork = new ConversationHistoryMemoryFork(memory, history_variable, input_variable);
-            this.addInputToHistory(fork, history_variable, input);
+            this.addInputToHistory(fork, history_variable, input!);
             this.addResponseToHistory(fork, history_variable, result.response);
 
             // Attempt to repair response
@@ -85,7 +93,7 @@ export class AlphaWave {
             // - we never want to save an invalid response to conversation history.
             // - the caller can take further corrective action, including simply re-trying.
             if (repair.status === 'success') {
-                this.addInputToHistory(memory, history_variable, input);
+                this.addInputToHistory(memory, history_variable, input!);
                 this.addResponseToHistory(memory, history_variable, repair.response as Message);
             }
 
