@@ -1,0 +1,22 @@
+{
+  "extension": [
+    ".ts"
+  ],
+  "include": [
+    "src/**"
+  ],
+  "exclude": [
+    "**/node_modules/**",
+    "**/tests/**",
+    "**/coverage/**",
+    "**/*.d.ts",
+    "src/index.ts",
+    "**/*.spec.ts",
+    "**/internals/**"
+  ],
+  "reporter": [
+    "html"
+  ],
+  "all": true,
+  "cache": true
+}
