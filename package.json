@@ -3,7 +3,8 @@
     "name": "alphawave",
     "version": "0.1.0",
     "workspaces": [
-        "./packages/*"
+        "./packages/*",
+        "./samples/*"
     ],
     "scripts": {
         "build": "wsrun -e -m -t build",

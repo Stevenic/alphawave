@@ -7,6 +7,7 @@ export interface OpenAIClientOptions {
     apiKey: string;
     organization?: string;
     endpoint?: string;
+    logPrompt?: boolean;
 }
 
 /**
@@ -54,6 +55,10 @@ export class OpenAIClient implements PromptCompletionClient {
             if (result.tooLong) {
                 return { status: 'too_long', response: `The generated text completion prompt had a length of ${result.length} tokens which exceeded the max_input_tokens of ${max_input_tokens}.` };
             }
+            if (this.options.logPrompt) {
+                console.log('PROMPT:');
+                console.log(result.output);
+            }
 
             // Call text completion API
             const request: CreateCompletionRequest = this.copyOptionsToRequest<CreateCompletionRequest>({
@@ -61,6 +66,13 @@ export class OpenAIClient implements PromptCompletionClient {
                 prompt: result.output,
             }, options, ['max_tokens', 'temperature', 'top_p', 'n', 'stream', 'logprobs', 'echo', 'stop', 'presence_penalty', 'frequency_penalty', 'best_of', 'logit_bias', 'user']);
             const response = await this.createCompletion(request);
+            if (this.options.logPrompt) {
+                console.log('RESPONSE:');
+                console.log(`status: ${response.status}\ndata:\n`);
+                console.log(response.data);
+            }
+
+            // Process response
             if (response.status < 300) {
                 const completion = response.data.choices[0];
                 return { status: 'success', response: { role: 'assistant', content: completion.text ?? '' } };
@@ -75,6 +87,10 @@ export class OpenAIClient implements PromptCompletionClient {
             if (result.tooLong) {
                 return { status: 'too_long', response: `The generated chat completion prompt had a length of ${result.length} tokens which exceeded the max_input_tokens of ${max_input_tokens}.` };
             }
+            if (this.options.logPrompt) {
+                console.log('CHAT PROMPT:');
+                console.log(result.output);
+            }
 
             // Call chat completion API
             const request: CreateChatCompletionRequest = this.copyOptionsToRequest<CreateChatCompletionRequest>({
@@ -82,6 +98,13 @@ export class OpenAIClient implements PromptCompletionClient {
                 messages: result.output as ChatCompletionRequestMessage[],
             }, options, ['max_tokens', 'temperature', 'top_p', 'n', 'stream', 'logprobs', 'echo', 'stop', 'presence_penalty', 'frequency_penalty', 'best_of', 'logit_bias', 'user']);
             const response = await this.createChatCompletion(request);
+            if (this.options.logPrompt) {
+                console.log('CHAT RESPONSE:');
+                console.log(`status: ${response.status}\ndata:\n`);
+                console.log(response.data);
+            }
+
+            // Process response
             if (response.status < 300) {
                 const completion = response.data.choices[0];
                 return { status: 'success', response: completion.message ?? { role: 'assistant', content: '' } };
