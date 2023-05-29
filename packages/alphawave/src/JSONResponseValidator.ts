@@ -42,7 +42,7 @@ export class JSONResponseValidator implements PromptResponseValidator {
 
             return Promise.resolve({
                 isValid: false,
-                feedback: `The JSON returned had the following errors:\n${errors!.map(e => `"${e.property}":"${e.message}"`).join('\n')}\n\n Try again.`
+                feedback: `The JSON returned had the following errors:\n${errors!.map(e => `"${e.property.split('.').slice(1).join('.')}": ${e.message}`).join('\n')}\n\nTry again.`
             });
         } else {
             // Return the last object
