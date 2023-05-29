@@ -26,6 +26,7 @@
     },
     "dependencies": {
         "alphawave": "0.1.0",
+        "jsonschema": "1.4.1",
         "promptrix": "^0.1.4"
     },
     "resolutions": {},
