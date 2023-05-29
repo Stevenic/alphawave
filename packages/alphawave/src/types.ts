@@ -33,4 +33,5 @@ export interface PromptResponse {
 export interface PromptResponseValidation {
     isValid: boolean;
     feedback?: string;
+    content?: any;
 }

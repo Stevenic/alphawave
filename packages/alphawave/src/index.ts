@@ -2,6 +2,7 @@ export * from "./AlphaWave";
 export * from "./AzureOpenAIClient";
 export * from "./ConversationHistoryFork";
 export * from "./DefaultResponseValidator";
+export * from "./JSONResponseValidator";
 export * from "./OpenAIClient";
 export * from "./Response";
 export * from "./TestClient";

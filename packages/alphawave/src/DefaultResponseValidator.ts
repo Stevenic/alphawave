@@ -5,9 +5,9 @@ import { PromptResponse, PromptResponseValidation, PromptResponseValidator } fro
  * Default response validator that always returns true.
  */
 export class DefaultResponseValidator implements PromptResponseValidator {
-    public async validateResponse(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse): Promise<PromptResponseValidation> {
-        return {
+    public validateResponse(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse): Promise<PromptResponseValidation> {
+        return Promise.resolve({
             isValid: true
-        };
+        });
     }
 }

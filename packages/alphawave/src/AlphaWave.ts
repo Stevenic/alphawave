@@ -1,4 +1,4 @@
-import { FunctionRegistry, GPT3Tokenizer, Message, PromptFunctions, PromptMemory, PromptSection, Tokenizer, VolatileMemory } from "promptrix";
+import { FunctionRegistry, GPT3Tokenizer, Message, PromptFunctions, PromptMemory, PromptSection, Tokenizer, VolatileMemory, Utilities } from "promptrix";
 import { PromptCompletionClient, PromptCompletionOptions, PromptResponse, PromptResponseValidation, PromptResponseValidator } from "./types";
 import { DefaultResponseValidator } from "./DefaultResponseValidator";
 import { ConversationHistoryFork } from "./ConversationHistoryFork";
@@ -77,6 +77,12 @@ export class AlphaWave {
             // Validate response
             const validation = await validator.validateResponse(memory, functions, tokenizer, result);
             if (validation.isValid) {
+                // Update content
+                if (validation.hasOwnProperty('content')) {
+                    // TODO: Promptrix has an issue to change the content type to any
+                    result.response.content = Utilities.toString(tokenizer, validation.content);
+                }
+
                 // Update history and return
                 this.addInputToHistory(memory, history_variable, input!);
                 this.addResponseToHistory(memory, history_variable, result.response);
@@ -165,6 +171,12 @@ export class AlphaWave {
         // Validate response
         validation = await validator.validateResponse(fork, functions, tokenizer, result);
         if (validation.isValid) {
+            // Update content
+            if (validation.hasOwnProperty('content')) {
+                // TODO: Promptrix has an issue to change the content type to any
+                result.response.content = Utilities.toString(tokenizer, validation.content);
+            }
+
             return result;
         }
 
