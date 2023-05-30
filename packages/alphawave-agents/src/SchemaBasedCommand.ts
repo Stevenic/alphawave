@@ -1,6 +1,7 @@
-import { PromptFunction, PromptMemory, Tokenizer  } from "promptrix";
+import { PromptFunctions, PromptMemory, Tokenizer  } from "promptrix";
+import { PromptResponseValidation } from "alphawave";
 import { Validator, Schema  } from "jsonschema";
-import { Command, ValidatedCommandInput } from "./types";
+import { Command } from "./types";
 
 export interface CommandSchema extends Schema {
     type: "object";
@@ -11,13 +12,17 @@ export interface CommandSchema extends Schema {
 
 export abstract class SchemaBasedCommand<TInput = Record<string, any>> implements Command<TInput> {
     private readonly _schema: CommandSchema;
+    private readonly _title?: string;
+    private readonly _description?: string;
 
-    public constructor(schema: CommandSchema) {
+    public constructor(schema: CommandSchema, title?: string, description?: string) {
         this._schema = schema;
+        this._title = title;
+        this._description = description;
     }
 
     public get description(): string {
-        return this._schema.description;
+        return this._description ?? this._schema.description;
     }
 
     public get inputs(): string | undefined {
@@ -29,7 +34,7 @@ export abstract class SchemaBasedCommand<TInput = Record<string, any>> implement
                 const property = properties[key];
                 const type = property.type ?? "any";
                 const description = property.description || `${type} value`;
-                return `"${key}":"${description}"`;
+                return `"${key}":"<${description}>"`;
             });
             return inputs.join(",");
         } else {
@@ -46,12 +51,12 @@ export abstract class SchemaBasedCommand<TInput = Record<string, any>> implement
     }
 
     public get title(): string {
-        return this._schema.title;
+        return this._title ?? this._schema.title;
     }
 
-    public abstract execute(input: TInput, memory: PromptMemory, functions: PromptFunction, tokenizer: Tokenizer): Promise<any>;
+    public abstract execute(input: TInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<any>;
 
-    public validate(input: TInput, memory: PromptMemory, functions: PromptFunction, tokenizer: Tokenizer): Promise<ValidatedCommandInput<TInput>> {
+    public validate(input: TInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<PromptResponseValidation> {
         // First clean the input
         const cleaned = this.cleanInput(input);
 
@@ -61,16 +66,17 @@ export abstract class SchemaBasedCommand<TInput = Record<string, any>> implement
         if (result.valid) {
             return Promise.resolve({
                 isValid: true,
-                input: cleaned
+                content: cleaned
             });
         } else {
-            const errors = result.errors.map(error => {
-                return `${error.property} ${error.message}`;
+            const errors = result.errors.map(e => {
+                const name = e.property.indexOf('.') == -1 ? 'input' : e.property.split('.').slice(1).join('.');
+                return `"${name}": ${e.message}`;
             });
             const message = errors.join("\n");
             return Promise.resolve({
                 isValid: false,
-                feedback: `Invalid inputs. Correct these errors:\n${message}`
+                feedback: `The command.input has errors:\n${message}\n\nTry again.`
             });
         }
     }

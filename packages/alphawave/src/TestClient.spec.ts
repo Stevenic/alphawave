@@ -33,7 +33,7 @@ describe("TestClient", () => {
             const client = new TestClient();
             const response = await client.completePrompt(memory, functions, tokenizer, prompt, options);
             assert.equal(response.status, 'success');
-            assert.deepEqual(response.response, { role: 'assistant', content: 'Hello World' });
+            assert.deepEqual(response.message, { role: 'assistant', content: 'Hello World' });
         });
     });
 });

@@ -18,7 +18,7 @@
         "url": "https://github.com"
     },
     "dependencies": {
-        "alphawave": "~0.1.0",
+        "alphawave": "~0.2.0",
         "promptrix": "0.1.4",
         "dotenv": "^8.2.0"
     },

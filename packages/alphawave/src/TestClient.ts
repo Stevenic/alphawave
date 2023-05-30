@@ -12,6 +12,6 @@ export class TestClient implements PromptCompletionClient {
 
 
     public async completePrompt(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, prompt: PromptSection, options: PromptCompletionOptions): Promise<PromptResponse> {
-        return { status: this.status, response: this.response };
+        return { status: this.status, message: this.response };
     }
 }

@@ -53,7 +53,7 @@ export class OpenAIClient implements PromptCompletionClient {
             // Render prompt
             const result = await prompt.renderAsText(memory, functions, tokenizer, max_input_tokens);
             if (result.tooLong) {
-                return { status: 'too_long', response: `The generated text completion prompt had a length of ${result.length} tokens which exceeded the max_input_tokens of ${max_input_tokens}.` };
+                return { status: 'too_long', message: `The generated text completion prompt had a length of ${result.length} tokens which exceeded the max_input_tokens of ${max_input_tokens}.` };
             }
             if (this.options.logPrompt) {
                 console.log('PROMPT:');
@@ -75,17 +75,17 @@ export class OpenAIClient implements PromptCompletionClient {
             // Process response
             if (response.status < 300) {
                 const completion = response.data.choices[0];
-                return { status: 'success', response: { role: 'assistant', content: completion.text ?? '' } };
+                return { status: 'success', message: { role: 'assistant', content: completion.text ?? '' } };
             } else if (response.status == 429) {
-                return { status: 'rate_limited', response: `The text completion API returned a rate limit error.` }
+                return { status: 'rate_limited', message: `The text completion API returned a rate limit error.` }
             } else {
-                return { status: 'error', response: `The text completion API returned an error status of ${response.status}: ${response.statusText}` };
+                return { status: 'error', message: `The text completion API returned an error status of ${response.status}: ${response.statusText}` };
             }
         } else {
             // Render prompt
             const result = await prompt.renderAsMessages(memory, functions, tokenizer, max_input_tokens);
             if (result.tooLong) {
-                return { status: 'too_long', response: `The generated chat completion prompt had a length of ${result.length} tokens which exceeded the max_input_tokens of ${max_input_tokens}.` };
+                return { status: 'too_long', message: `The generated chat completion prompt had a length of ${result.length} tokens which exceeded the max_input_tokens of ${max_input_tokens}.` };
             }
             if (this.options.logPrompt) {
                 console.log('CHAT PROMPT:');
@@ -107,11 +107,11 @@ export class OpenAIClient implements PromptCompletionClient {
             // Process response
             if (response.status < 300) {
                 const completion = response.data.choices[0];
-                return { status: 'success', response: completion.message ?? { role: 'assistant', content: '' } };
+                return { status: 'success', message: completion.message ?? { role: 'assistant', content: '' } };
             } else if (response.status == 429) {
-                return { status: 'rate_limited', response: `The chat completion API returned a rate limit error.` }
+                return { status: 'rate_limited', message: `The chat completion API returned a rate limit error.` }
             } else {
-                return { status: 'error', response: `The chat completion API returned an error status of ${response.status}: ${response.statusText}` };
+                return { status: 'error', message: `The chat completion API returned an error status of ${response.status}: ${response.statusText}` };
             }
         }
     }

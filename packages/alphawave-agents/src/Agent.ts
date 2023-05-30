@@ -1,5 +1,7 @@
 import { FunctionRegistry, GPT3Tokenizer, PromptFunctions, PromptMemory, PromptSection, Tokenizer, VolatileMemory } from "promptrix";
-import { AlphaWave, PromptCompletionClient, PromptCompletionOptions } from "alphawave";
+import { AlphaWave, JSONResponseValidator, PromptCompletionClient, PromptCompletionOptions } from "alphawave";
+import { TaskResponse, AgentThoughts } from "./types";
+import { Schema } from "jsonschema";
 
 export interface AgentOptions  {
     client: PromptCompletionClient;
@@ -48,6 +50,62 @@ export class Agent {
         }, options) as ConfiguredAgentOptions;
     }
 
-    public async completeTask(input?: string): Promise<void> {
+    public async completeTask(input?: string): Promise<TaskResponse> {
+        //
+        // Create a wave and send it
+        const wave = new AlphaWave(this.options);
+        const response = await wave.completePrompt(input);
+
+        // Process the response
+        const message = typeof response.message == "object" ? response.message.content : response.message;
+        if (response.status === "success") {
+            // Return the response
+            return {
+                type: "TaskResponse",
+                status: response.status,
+                message
+            }
+        } else {
+            // Return the error
+            return {
+                type: "TaskResponse",
+                status: response.status,
+                message
+            };
+        }
     }
 }
+
+const agentThoughtsSchema: Schema = {
+    type: "object",
+    properties: {
+        thoughts: {
+            type: "object",
+            properties: {
+                thought: {
+                    type: "string"
+                },
+                reasoning: {
+                    type: "string"
+                },
+                plan: {
+                    type: "string"
+                }
+            },
+            required: ["thought", "reasoning", "plan"]
+        },
+        command: {
+            type: "object",
+            properties: {
+                name: {
+                    type: "string"
+                },
+                input: {
+                    type: "object"
+                }
+            },
+            required: ["name", "input"]
+        }
+    },
+    required: ["thoughts", "command"]
+};

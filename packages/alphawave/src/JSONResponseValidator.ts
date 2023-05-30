@@ -11,7 +11,7 @@ export class JSONResponseValidator implements PromptResponseValidator {
     }
 
     public validateResponse(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse): Promise<PromptResponseValidation> {
-        const message = response.response;
+        const message = response.message;
         const text = typeof message === 'string' ? message : message.content ?? '';
 
         // Parse the response text

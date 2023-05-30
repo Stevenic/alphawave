@@ -85,7 +85,7 @@ describe("AlphaWave", () => {
         it("should complete a prompt and update history", async () => {
             const response = await wave.completePrompt();
             assert.equal(response.status, 'success');
-            assert.deepEqual(response.response, { role: 'assistant', content: 'Hello' });
+            assert.deepEqual(response.message, { role: 'assistant', content: 'Hello' });
             const history = memory.get('history');
             assert.deepEqual(history, [{ role: 'assistant', content: 'Hello' }]);
             const input = memory.get('input');
@@ -97,7 +97,7 @@ describe("AlphaWave", () => {
             client.response = 'Hello';
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'success');
-            assert.deepEqual(response.response, { role: 'assistant', content: 'Hello' });
+            assert.deepEqual(response.message, { role: 'assistant', content: 'Hello' });
             const history = memory.get('history');
             assert.deepEqual(history, [{ role: 'user', content: 'Hi' },{ role: 'assistant', content: 'Hello' }]);
             const input = memory.get('input');
@@ -110,7 +110,7 @@ describe("AlphaWave", () => {
             memory.set('input', 'Hi');
             const response = await wave.completePrompt();
             assert.equal(response.status, 'success');
-            assert.deepEqual(response.response, { role: 'assistant', content: 'Hello' });
+            assert.deepEqual(response.message, { role: 'assistant', content: 'Hello' });
             const history = memory.get('history');
             assert.deepEqual(history, [{ role: 'user', content: 'Hi' },{ role: 'assistant', content: 'Hello' }]);
             const input = memory.get('input');
@@ -123,7 +123,7 @@ describe("AlphaWave", () => {
             memory.set('history', [{ role: 'user', content: 'Hi' },{ role: 'assistant', content: 'Hi! How may I assist you?' }]);
             const response = await wave.completePrompt('book flight');
             assert.equal(response.status, 'success');
-            assert.deepEqual(response.response, { role: 'assistant', content: 'Sure I can help with that' });
+            assert.deepEqual(response.message, { role: 'assistant', content: 'Sure I can help with that' });
             const history = memory.get('history');
             assert.deepEqual(history, [{ role: 'user', content: 'Hi' },{ role: 'assistant', content: 'Hi! How may I assist you?' },{ role: 'user', content: 'book flight' },{ role: 'assistant', content: 'Sure I can help with that' }]);
             memory.clear();
@@ -134,7 +134,7 @@ describe("AlphaWave", () => {
             for (let i = 0; i < 20; i++) {
                 const response = await wave.completePrompt();
                 assert.equal(response.status, 'success');
-                assert.deepEqual(response.response, { role: 'assistant', content: 'Hello' });
+                assert.deepEqual(response.message, { role: 'assistant', content: 'Hello' });
             }
             const history = memory.get('history');
             assert.equal(history.length, wave.options.max_history_messages);
@@ -146,7 +146,7 @@ describe("AlphaWave", () => {
             for (let i = 0; i < 20; i++) {
                 const response = await wave.completePrompt('Hi');
                 assert.equal(response.status, 'success');
-                assert.deepEqual(response.response, { role: 'assistant', content: 'Hello' });
+                assert.deepEqual(response.message, { role: 'assistant', content: 'Hello' });
             }
             const history = memory.get('history');
             assert.equal(history.length, wave.options.max_history_messages);
@@ -157,7 +157,7 @@ describe("AlphaWave", () => {
             client.response = undefined as any;
             const response = await wave.completePrompt();
             assert.equal(response.status, 'success');
-            assert.deepEqual(response.response, { role: 'assistant', content: '' });
+            assert.deepEqual(response.message, { role: 'assistant', content: '' });
             memory.clear();
         });
 
@@ -166,7 +166,7 @@ describe("AlphaWave", () => {
             client.response = 'Hello';
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'success');
-            assert.deepEqual(response.response, { role: 'assistant', content: 'Hello' });
+            assert.deepEqual(response.message, { role: 'assistant', content: 'Hello' });
             const input = memory.get('');
             assert.equal(input, undefined);
             memory.clear();
@@ -177,7 +177,7 @@ describe("AlphaWave", () => {
             client.response = 'Hello';
             const response = await wave.completePrompt('');
             assert.equal(response.status, 'success');
-            assert.deepEqual(response.response, { role: 'assistant', content: 'Hello' });
+            assert.deepEqual(response.message, { role: 'assistant', content: 'Hello' });
             const input = memory.get('');
             assert.equal(input, undefined);
             memory.clear();
@@ -188,7 +188,7 @@ describe("AlphaWave", () => {
             client.response = 'Hello';
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'success');
-            assert.deepEqual(response.response, { role: 'assistant', content: 'Hello' });
+            assert.deepEqual(response.message, { role: 'assistant', content: 'Hello' });
             const history = memory.get('');
             assert.equal(history, undefined);
             memory.clear();
@@ -199,7 +199,7 @@ describe("AlphaWave", () => {
             client.response = 'Some Error';
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'error');
-            assert.equal(response.response, 'Some Error');
+            assert.equal(response.message, 'Some Error');
             memory.clear();
         });
 
@@ -209,7 +209,7 @@ describe("AlphaWave", () => {
             validator.exception = new Error('Some Exception');
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'error');
-            assert.equal(response.response, 'Some Exception');
+            assert.equal(response.message, 'Some Exception');
             memory.clear();
         });
 
@@ -219,7 +219,7 @@ describe("AlphaWave", () => {
             validator.exception = 'Some Exception' as any;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'error');
-            assert.equal(response.response, 'Some Exception');
+            assert.equal(response.message, 'Some Exception');
             memory.clear();
         });
     });
@@ -230,7 +230,7 @@ describe("AlphaWave", () => {
             validator.repairAttempts = 1;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'success');
-            assert.deepEqual(response.response, { role: 'assistant', content: 'Hello' });
+            assert.deepEqual(response.message, { role: 'assistant', content: 'Hello' });
             const history = memory.get('history');
             assert.deepEqual(history, [{ role: 'user', content: 'Hi' },{ role: 'assistant', content: 'Hello' }]);
             memory.clear();
@@ -241,7 +241,7 @@ describe("AlphaWave", () => {
             validator.repairAttempts = 2;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'success');
-            assert.deepEqual(response.response, { role: 'assistant', content: 'Hello' });
+            assert.deepEqual(response.message, { role: 'assistant', content: 'Hello' });
             const history = memory.get('history');
             assert.deepEqual(history, [{ role: 'user', content: 'Hi' },{ role: 'assistant', content: 'Hello' }]);
             memory.clear();
@@ -252,7 +252,7 @@ describe("AlphaWave", () => {
             validator.repairAttempts = 3;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'success');
-            assert.deepEqual(response.response, { role: 'assistant', content: 'Hello' });
+            assert.deepEqual(response.message, { role: 'assistant', content: 'Hello' });
             const history = memory.get('history');
             assert.deepEqual(history, [{ role: 'user', content: 'Hi' },{ role: 'assistant', content: 'Hello' }]);
             memory.clear();
@@ -263,7 +263,7 @@ describe("AlphaWave", () => {
             validator.repairAttempts = 4;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'invalid_response');
-            assert.equal(response.response, validator.feedback);
+            assert.equal(response.message, validator.feedback);
             const history = memory.get('history');
             assert.equal(history, undefined);
             memory.clear();
@@ -275,7 +275,7 @@ describe("AlphaWave", () => {
             validator.clientErrorDuringRepair = true;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'error');
-            assert.equal(response.response, 'Some Error');
+            assert.equal(response.message, 'Some Error');
             memory.clear();
         });
 
@@ -286,7 +286,7 @@ describe("AlphaWave", () => {
             validator.feedback = undefined as any;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'success');
-            assert.deepEqual(response.response, { role: 'assistant', content: 'Hello' });
+            assert.deepEqual(response.message, { role: 'assistant', content: 'Hello' });
             const history = memory.get('history');
             assert.deepEqual(history, [{ role: 'user', content: 'Hi' },{ role: 'assistant', content: 'Hello' }]);
             memory.clear();
@@ -298,7 +298,7 @@ describe("AlphaWave", () => {
             validator.repairAttempts = 1;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'success');
-            assert.deepEqual(response.response, { role: 'assistant', content: '' });
+            assert.deepEqual(response.message, { role: 'assistant', content: '' });
             memory.clear();
         });
 
@@ -308,7 +308,7 @@ describe("AlphaWave", () => {
             validator.repairAttempts = 1;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'success');
-            assert.deepEqual(response.response, { role: 'assistant', content: 'Hello World' });
+            assert.deepEqual(response.message, { role: 'assistant', content: 'Hello World' });
             const history = memory.get('history');
             assert.deepEqual(history, [{ role: 'user', content: 'Hi' },{ role: 'assistant', content: 'Hello World' }]);
             memory.clear();

@@ -64,35 +64,35 @@ export class AlphaWave {
 
         try {
             // Ask client to complete prompt
-            const result = await client.completePrompt(memory, functions, tokenizer, prompt, prompt_options);
-            if (result.status !== 'success') {
-                return result;
+            const response = await client.completePrompt(memory, functions, tokenizer, prompt, prompt_options);
+            if (response.status !== 'success') {
+                return response;
             }
 
             // Ensure response is a message
-            if (typeof result.response !== 'object') {
-                result.response = { role: 'assistant', content: result.response ?? '' };
+            if (typeof response.message !== 'object') {
+                response.message = { role: 'assistant', content: response.message ?? '' };
             }
 
             // Validate response
-            const validation = await validator.validateResponse(memory, functions, tokenizer, result);
+            const validation = await validator.validateResponse(memory, functions, tokenizer, response);
             if (validation.isValid) {
                 // Update content
                 if (validation.hasOwnProperty('content')) {
                     // TODO: Promptrix has an issue to change the content type to any
-                    result.response.content = Utilities.toString(tokenizer, validation.content);
+                    response.message.content = Utilities.toString(tokenizer, validation.content);
                 }
 
                 // Update history and return
                 this.addInputToHistory(memory, history_variable, input!);
-                this.addResponseToHistory(memory, history_variable, result.response);
-                return result;
+                this.addResponseToHistory(memory, history_variable, response.message);
+                return response;
             }
 
             // Fork the conversation history and update the fork with the invalid response.
             const fork = new ConversationHistoryFork(memory, history_variable, input_variable);
             this.addInputToHistory(fork, history_variable, input!);
-            this.addResponseToHistory(fork, history_variable, result.response);
+            this.addResponseToHistory(fork, history_variable, response.message);
 
             // Attempt to repair response
             const repair = await this.repairResponse(fork, functions, tokenizer, validation, max_repair_attempts);
@@ -103,14 +103,14 @@ export class AlphaWave {
             // - the caller can take further corrective action, including simply re-trying.
             if (repair.status === 'success') {
                 this.addInputToHistory(memory, history_variable, input!);
-                this.addResponseToHistory(memory, history_variable, repair.response as Message);
+                this.addResponseToHistory(memory, history_variable, repair.message as Message);
             }
 
             return repair;
         } catch (err: unknown) {
             return {
                 status: 'error',
-                response: err instanceof Error ? err.message : `${err}`
+                message: err instanceof Error ? err.message : `${err}`
             };
         }
     }
@@ -145,7 +145,7 @@ export class AlphaWave {
         if (remaining_attempts <= 0) {
             return {
                 status: 'invalid_response',
-                response: feedback
+                message: feedback
             };
         }
 
@@ -158,26 +158,26 @@ export class AlphaWave {
         }
 
         // Ask client to complete prompt
-        const result = await client.completePrompt(fork, functions, tokenizer, prompt, prompt_options);
-        if (result.status !== 'success') {
-            return result;
+        const response = await client.completePrompt(fork, functions, tokenizer, prompt, prompt_options);
+        if (response.status !== 'success') {
+            return response;
         }
 
         // Ensure response is a message
-        if (typeof result.response !== 'object') {
-            result.response = { role: 'assistant', content: result.response ?? '' };
+        if (typeof response.message !== 'object') {
+            response.message = { role: 'assistant', content: response.message ?? '' };
         }
 
         // Validate response
-        validation = await validator.validateResponse(fork, functions, tokenizer, result);
+        validation = await validator.validateResponse(fork, functions, tokenizer, response);
         if (validation.isValid) {
             // Update content
             if (validation.hasOwnProperty('content')) {
                 // TODO: Promptrix has an issue to change the content type to any
-                result.response.content = Utilities.toString(tokenizer, validation.content);
+                response.message.content = Utilities.toString(tokenizer, validation.content);
             }
 
-            return result;
+            return response;
         }
 
         // Try next attempt

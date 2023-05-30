@@ -1,18 +1,31 @@
-import { PromptMemory, PromptFunction, Tokenizer } from "promptrix";
-import { PromptResponseValidation } from "alphawave";
+import { PromptFunctions, PromptMemory, Tokenizer } from "promptrix";
+import { PromptResponseStatus, PromptResponseValidation } from "alphawave";
 
 export interface Command<TInput = Record<string, any>> {
     readonly title: string;
     readonly description: string;
     readonly inputs: string|undefined;
     readonly output: string|undefined;
-    execute(input: TInput, memory: PromptMemory, functions: PromptFunction, tokenizer: Tokenizer): Promise<any>;
-    validate(input: TInput, memory: PromptMemory, functions: PromptFunction, tokenizer: Tokenizer): Promise<PromptResponseValidation>;
+    execute(input: TInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<any>;
+    validate(input: TInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<PromptResponseValidation>;
 }
 
-export interface ValidatedCommandInput<TInput = Record<string, any>> extends PromptResponseValidation {
-    /**
-     * The cleaned and validated input.
-     */
-    input?: TInput;
+export type TaskResponseStatus = PromptResponseStatus | 'input_needed' | 'too_many_steps';
+
+export interface TaskResponse {
+    type: 'TaskResponse';
+    status: TaskResponseStatus;
+    message?: string;
+}
+
+export interface AgentThoughts {
+    thoughts: {
+        thought: string;
+        reasoning: string;
+        plan: string;
+    };
+    command: {
+        name: string;
+        input: Record<string, any>;
+    }
 }
