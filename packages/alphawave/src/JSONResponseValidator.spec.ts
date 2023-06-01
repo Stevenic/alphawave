@@ -35,7 +35,7 @@ describe("JSONResponseValidator", () => {
             const validator = new JSONResponseValidator();
             const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '{"foo":"bar"}' });
             assert.notEqual(response, undefined);
-            assert.equal(response.isValid, true);
+            assert.equal(response.valid, true);
             assert.deepEqual(response.content, { foo: 'bar' });
         });
 
@@ -43,7 +43,7 @@ describe("JSONResponseValidator", () => {
             const validator = new JSONResponseValidator(schema);
             const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '{"foo":"bar"}' });
             assert.notEqual(response, undefined);
-            assert.equal(response.isValid, true);
+            assert.equal(response.valid, true);
             assert.deepEqual(response.content, { foo: 'bar' });
         });
 
@@ -51,7 +51,7 @@ describe("JSONResponseValidator", () => {
             const validator = new JSONResponseValidator();
             const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '' });
             assert.notEqual(response, undefined);
-            assert.equal(response.isValid, false);
+            assert.equal(response.valid, false);
             assert.equal(response.feedback, 'No JSON objects were found in the response. Try again.');
             assert.equal(response.content, undefined);
         });
@@ -60,7 +60,7 @@ describe("JSONResponseValidator", () => {
             const validator = new JSONResponseValidator(schema);
             const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '{"foo":7}' });
             assert.notEqual(response, undefined);
-            assert.equal(response.isValid, false);
+            assert.equal(response.valid, false);
             assert.equal(response.feedback, `The JSON returned had the following errors:\n"foo": is not of a type(s) string\n\nTry again.`);
         });
     });

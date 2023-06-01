@@ -1,6 +1,6 @@
 import { FunctionRegistry, GPT3Tokenizer, PromptFunctions, PromptMemory, PromptSection, Tokenizer, VolatileMemory } from "promptrix";
-import { AlphaWave, JSONResponseValidator, PromptCompletionClient, PromptCompletionOptions } from "alphawave";
-import { TaskResponse, AgentThoughts } from "./types";
+import { AlphaWave, JSONResponseValidator, PromptCompletionClient, PromptCompletionOptions, PromptResponse, PromptResponseValidation, PromptResponseValidator } from "alphawave";
+import { TaskResponse, AgentThoughts, Command } from "./types";
 import { Schema } from "jsonschema";
 
 export interface AgentOptions  {
@@ -33,7 +33,9 @@ export interface ConfiguredAgentOptions {
     tokenizer: Tokenizer;
 }
 
-export class Agent {
+export class Agent implements PromptResponseValidator {
+    private readonly _commands: Map<string, Command> = new Map();
+
     public readonly options: ConfiguredAgentOptions;
 
     public constructor(options: AgentOptions) {
@@ -50,29 +52,34 @@ export class Agent {
         }, options) as ConfiguredAgentOptions;
     }
 
-    public async completeTask(input?: string): Promise<TaskResponse> {
-        //
-        // Create a wave and send it
-        const wave = new AlphaWave(this.options);
-        const response = await wave.completePrompt(input);
-
-        // Process the response
-        const message = typeof response.message == "object" ? response.message.content : response.message;
-        if (response.status === "success") {
-            // Return the response
-            return {
-                type: "TaskResponse",
-                status: response.status,
-                message
-            }
-        } else {
-            // Return the error
-            return {
-                type: "TaskResponse",
-                status: response.status,
-                message
-            };
+    public addCommand(command: Command): this {
+        if (this._commands.has(command.title)) {
+            throw new Error(`A command with the title "${command.title}" already exists.`);
         }
+        this._commands.set(command.title, command);
+        return this;
+    }
+
+    public getCommand(title: string): Command|undefined {
+        return this._commands.get(title);
+    }
+
+    public hasCommand(title: string): boolean {
+        return this._commands.has(title);
+    }
+
+    public async completeTask(input?: string): Promise<TaskResponse> {
+        // Start main task loop
+        let step = 0;
+        while (step < this.options.max_steps) {
+        }
+
+        // Return too many steps
+        return {
+            type: "TaskResponse",
+            status: "too_many_steps",
+            message: "The current task has taken too many steps."
+        };
     }
 }
 

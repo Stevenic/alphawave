@@ -1,5 +1,5 @@
 import { FunctionRegistry, GPT3Tokenizer, Message, PromptFunctions, PromptMemory, PromptSection, Tokenizer, VolatileMemory, Utilities } from "promptrix";
-import { PromptCompletionClient, PromptCompletionOptions, PromptResponse, PromptResponseValidation, PromptResponseValidator } from "./types";
+import { PromptCompletionClient, PromptCompletionOptions, PromptResponse, ResponseValidation, PromptResponseValidator } from "./types";
 import { DefaultResponseValidator } from "./DefaultResponseValidator";
 import { ConversationHistoryFork } from "./ConversationHistoryFork";
 
@@ -76,7 +76,7 @@ export class AlphaWave {
 
             // Validate response
             const validation = await validator.validateResponse(memory, functions, tokenizer, response);
-            if (validation.isValid) {
+            if (validation.valid) {
                 // Update content
                 if (validation.hasOwnProperty('content')) {
                     // TODO: Promptrix has an issue to change the content type to any
@@ -137,7 +137,7 @@ export class AlphaWave {
         }
     }
 
-    private async repairResponse(fork: ConversationHistoryFork, functions: PromptFunctions, tokenizer: Tokenizer, validation: PromptResponseValidation, remaining_attempts: number): Promise<PromptResponse> {
+    private async repairResponse(fork: ConversationHistoryFork, functions: PromptFunctions, tokenizer: Tokenizer, validation: ResponseValidation, remaining_attempts: number): Promise<PromptResponse> {
         const { client, prompt, prompt_options, input_variable, validator } = this.options;
 
         // Are we out of attempts?
@@ -170,7 +170,7 @@ export class AlphaWave {
 
         // Validate response
         validation = await validator.validateResponse(fork, functions, tokenizer, response);
-        if (validation.isValid) {
+        if (validation.valid) {
             // Update content
             if (validation.hasOwnProperty('content')) {
                 // TODO: Promptrix has an issue to change the content type to any

@@ -20,7 +20,7 @@ describe("DefaultResponseValidator", () => {
             const validator = new DefaultResponseValidator();
             const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: 'Hello World' });
             assert.notDeepEqual(response, undefined);
-            assert.equal(response.isValid, true);
+            assert.equal(response.valid, true);
         });
     });
 });

@@ -33,7 +33,7 @@ describe("MathCommand", () => {
                 code: '7 + 3'
             };
             const result = await command.validate(input, memory, functions, tokenizer);
-            assert.equal(result.isValid, true);
+            assert.equal(result.valid, true);
             assert.deepEqual(result.content, input);
         });
 
@@ -43,7 +43,7 @@ describe("MathCommand", () => {
                 math: '7 + 3'
             };
             const result = await command.validate(input as any, memory, functions, tokenizer);
-            assert.equal(result.isValid, false);
+            assert.equal(result.valid, false);
             assert.equal(result.feedback, 'The command.input has errors:\n"input": requires property "code"\n\nTry again.');
         });
     });

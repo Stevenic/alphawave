@@ -43,7 +43,7 @@ describe("PromptCommand", () => {
                 fact: 'test fact'
             };
             const result = await command.validate(input, memory, functions, tokenizer);
-            assert.equal(result.isValid, true);
+            assert.equal(result.valid, true);
             assert.deepEqual(result.content, input);
         });
 
@@ -53,7 +53,7 @@ describe("PromptCommand", () => {
                 test: 'test fact'
             };
             const result = await command.validate(input as any, memory, functions, tokenizer);
-            assert.equal(result.isValid, false);
+            assert.equal(result.valid, false);
             assert.equal(result.feedback, 'The command.input has errors:\n"input": requires property "fact"\n\nTry again.');
         });
     });

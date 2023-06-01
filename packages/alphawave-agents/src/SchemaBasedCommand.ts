@@ -1,5 +1,5 @@
 import { PromptFunctions, PromptMemory, Tokenizer  } from "promptrix";
-import { PromptResponseValidation } from "alphawave";
+import { ResponseValidation } from "alphawave";
 import { Validator, Schema  } from "jsonschema";
 import { Command } from "./types";
 
@@ -56,7 +56,7 @@ export abstract class SchemaBasedCommand<TInput = Record<string, any>> implement
 
     public abstract execute(input: TInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<any>;
 
-    public validate(input: TInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<PromptResponseValidation> {
+    public validate(input: TInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<ResponseValidation<TInput>> {
         // First clean the input
         const cleaned = this.cleanInput(input);
 
@@ -65,7 +65,8 @@ export abstract class SchemaBasedCommand<TInput = Record<string, any>> implement
         const result = validator.validate(cleaned, this._schema);
         if (result.valid) {
             return Promise.resolve({
-                isValid: true,
+                type: 'ResponseValidation',
+                valid: true,
                 content: cleaned
             });
         } else {
@@ -75,7 +76,8 @@ export abstract class SchemaBasedCommand<TInput = Record<string, any>> implement
             });
             const message = errors.join("\n");
             return Promise.resolve({
-                isValid: false,
+                type: 'ResponseValidation',
+                valid: false,
                 feedback: `The command.input has errors:\n${message}\n\nTry again.`
             });
         }
