@@ -8,7 +8,7 @@ export class TestClient implements PromptCompletionClient {
     }
 
     public status: PromptResponseStatus;
-    public response: string|Message;
+    public response: string|Message<any>;
 
 
     public async completePrompt(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, prompt: PromptSection, options: PromptCompletionOptions): Promise<PromptResponse> {

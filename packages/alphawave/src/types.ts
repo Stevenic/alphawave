@@ -27,7 +27,7 @@ export type PromptResponseStatus = 'success' | 'error' | 'rate_limited' | 'inval
 
 export interface PromptResponse {
     status: PromptResponseStatus;
-    message: Message|string;
+    message: Message<any>|string;
 }
 
 export interface ResponseValidation<TContent = any> {

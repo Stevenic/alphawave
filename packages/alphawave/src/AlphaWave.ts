@@ -79,8 +79,7 @@ export class AlphaWave {
             if (validation.valid) {
                 // Update content
                 if (validation.hasOwnProperty('content')) {
-                    // TODO: Promptrix has an issue to change the content type to any
-                    response.message.content = Utilities.toString(tokenizer, validation.content);
+                    response.message.content = validation.content;
                 }
 
                 // Update history and return
@@ -173,8 +172,7 @@ export class AlphaWave {
         if (validation.valid) {
             // Update content
             if (validation.hasOwnProperty('content')) {
-                // TODO: Promptrix has an issue to change the content type to any
-                response.message.content = Utilities.toString(tokenizer, validation.content);
+                response.message.content = validation.content;
             }
 
             return response;

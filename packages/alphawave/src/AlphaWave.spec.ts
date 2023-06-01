@@ -1,5 +1,5 @@
 import { strict as assert } from "assert";
-import { FunctionRegistry, GPT3Tokenizer, Prompt, PromptFunctions, PromptMemory, Tokenizer, VolatileMemory } from "promptrix";
+import { Message, FunctionRegistry, GPT3Tokenizer, Prompt, PromptFunctions, PromptMemory, Tokenizer, VolatileMemory } from "promptrix";
 import { PromptCompletionOptions, PromptResponse, PromptResponseValidator, ResponseValidation } from "./types";
 import { DefaultResponseValidator } from "./DefaultResponseValidator";
 import { TestClient } from "./TestClient";
@@ -10,6 +10,7 @@ class TestValidator implements PromptResponseValidator {
     public repairAttempts: number = 0;
     public exception?: Error;
     public clientErrorDuringRepair: boolean = false;
+    public returnContent: boolean = false;
 
     public constructor(public client: TestClient) { }
 
@@ -29,6 +30,9 @@ class TestValidator implements PromptResponseValidator {
         } else if (this.repairAttempts > 0) {
             this.repairAttempts--;
             return Promise.resolve({ type: 'ResponseValidation', valid: false, feedback: this.feedback });
+        } else if (this.returnContent) {
+            this.returnContent = false;
+            return Promise.resolve({ type: 'ResponseValidation', valid: true, content: (response.message as Message).content });
         } else {
             return Promise.resolve({ type: 'ResponseValidation', valid: true });
         }
@@ -222,6 +226,18 @@ describe("AlphaWave", () => {
             assert.equal(response.message, 'Some Exception');
             memory.clear();
         });
+
+        it("should return a message object with a parsed content object", async () => {
+            client.status = 'success';
+            client.response = { role: 'assistant', content: { foo: 'bar'} };
+            validator.returnContent = true;
+            const response = await wave.completePrompt('Hi');
+            assert.equal(response.status, 'success');
+            assert.deepEqual(response.message, { role: 'assistant', content: { foo: 'bar'} });
+            const history = memory.get('history');
+            assert.deepEqual(history, [{ role: 'user', content: 'Hi' },{ role: 'assistant', content: { foo: 'bar'} }]);
+            memory.clear();
+        });
     });
 
     describe("prompt completion with validation", () => {
@@ -311,6 +327,19 @@ describe("AlphaWave", () => {
             assert.deepEqual(response.message, { role: 'assistant', content: 'Hello World' });
             const history = memory.get('history');
             assert.deepEqual(history, [{ role: 'user', content: 'Hi' },{ role: 'assistant', content: 'Hello World' }]);
+            memory.clear();
+        });
+
+        it("should return a message object with a parsed content object as a repaired response", async () => {
+            client.status = 'success';
+            client.response = { role: 'assistant', content: { foo: 'bar'} };
+            validator.repairAttempts = 1;
+            validator.returnContent = true;
+            const response = await wave.completePrompt('Hi');
+            assert.equal(response.status, 'success');
+            assert.deepEqual(response.message, { role: 'assistant', content: { foo: 'bar'} });
+            const history = memory.get('history');
+            assert.deepEqual(history, [{ role: 'user', content: 'Hi' },{ role: 'assistant', content: { foo: 'bar'} }]);
             memory.clear();
         });
     });
