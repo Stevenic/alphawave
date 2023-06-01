@@ -3,6 +3,7 @@ export * from "./AzureOpenAIClient";
 export * from "./ConversationHistoryFork";
 export * from "./DefaultResponseValidator";
 export * from "./JSONResponseValidator";
+export * from "./MemoryFork";
 export * from "./OpenAIClient";
 export * from "./Response";
 export * from "./TestClient";

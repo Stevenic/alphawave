@@ -1,7 +1,7 @@
 import { FunctionRegistry, GPT3Tokenizer, Message, PromptFunctions, PromptMemory, PromptSection, Tokenizer, VolatileMemory, Utilities } from "promptrix";
 import { PromptCompletionClient, PromptCompletionOptions, PromptResponse, ResponseValidation, PromptResponseValidator } from "./types";
 import { DefaultResponseValidator } from "./DefaultResponseValidator";
-import { ConversationHistoryFork } from "./ConversationHistoryFork";
+import { MemoryFork } from "./MemoryFork";
 
 
 export interface AlphaWaveOptions {
@@ -90,7 +90,7 @@ export class AlphaWave {
             }
 
             // Fork the conversation history and update the fork with the invalid response.
-            const fork = new ConversationHistoryFork(memory, history_variable, input_variable);
+            const fork = new MemoryFork(memory);
             this.addInputToHistory(fork, history_variable, input!);
             this.addResponseToHistory(fork, history_variable, response.message);
 
@@ -137,7 +137,7 @@ export class AlphaWave {
         }
     }
 
-    private async repairResponse(fork: ConversationHistoryFork, functions: PromptFunctions, tokenizer: Tokenizer, validation: ResponseValidation, remaining_attempts: number): Promise<PromptResponse> {
+    private async repairResponse(fork: MemoryFork, functions: PromptFunctions, tokenizer: Tokenizer, validation: ResponseValidation, remaining_attempts: number): Promise<PromptResponse> {
         const { client, prompt, prompt_options, input_variable, validator } = this.options;
 
         // Are we out of attempts?

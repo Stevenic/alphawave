@@ -2,7 +2,7 @@
     "name": "alphawave",
     "author": "Steven Ickman",
     "description": "A very opinionated client for interfacing with Large Language Models.",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "license": "MIT",
     "keywords": [
         "ai",
@@ -28,7 +28,7 @@
         "axios": "^1.3.4",
         "gpt-3-encoder": "1.1.4",
         "jsonschema": "1.4.1",
-        "promptrix": "^0.1.4",
+        "promptrix": "^0.2.0",
         "yaml": "2.3.1"
     },
     "resolutions": {},
