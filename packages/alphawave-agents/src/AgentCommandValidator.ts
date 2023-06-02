@@ -8,7 +8,7 @@ export class AgentCommandValidator implements PromptResponseValidator {
         this._commands = commands;
     }
 
-    public validateResponse(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse): Promise<ResponseValidation<AgentThoughts>> {
-
+    public async validateResponse(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse): Promise<ResponseValidation<AgentThoughts>> {
+        return{} as any;
     }
 }

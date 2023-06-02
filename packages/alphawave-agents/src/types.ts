@@ -1,5 +1,5 @@
 import { PromptFunctions, PromptMemory, Tokenizer } from "promptrix";
-import { PromptResponseStatus, PromptResponseValidation } from "alphawave";
+import { PromptResponseStatus, ResponseValidation } from "alphawave";
 
 export interface Command<TInput = Record<string, any>> {
     readonly title: string;
@@ -7,7 +7,7 @@ export interface Command<TInput = Record<string, any>> {
     readonly inputs: string|undefined;
     readonly output: string|undefined;
     execute(input: TInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<any>;
-    validate(input: TInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<PromptResponseValidation>;
+    validate(input: TInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<ResponseValidation>;
 }
 
 export type TaskResponseStatus = PromptResponseStatus | 'input_needed' | 'too_many_steps';

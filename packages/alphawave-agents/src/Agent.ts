@@ -1,5 +1,5 @@
 import { FunctionRegistry, GPT3Tokenizer, PromptFunctions, PromptMemory, PromptSection, Tokenizer, VolatileMemory } from "promptrix";
-import { AlphaWave, JSONResponseValidator, PromptCompletionClient, PromptCompletionOptions, PromptResponse, PromptResponseValidation, PromptResponseValidator } from "alphawave";
+import { AlphaWave, JSONResponseValidator, PromptCompletionClient, PromptCompletionOptions, PromptResponse, ResponseValidation, PromptResponseValidator } from "alphawave";
 import { TaskResponse, AgentThoughts, Command } from "./types";
 import { Schema } from "jsonschema";
 
@@ -33,6 +33,7 @@ export interface ConfiguredAgentOptions {
     tokenizer: Tokenizer;
 }
 
+/*
 export class Agent implements PromptResponseValidator {
     private readonly _commands: Map<string, Command> = new Map();
 
@@ -116,3 +117,4 @@ const agentThoughtsSchema: Schema = {
     },
     required: ["thoughts", "command"]
 };
+*/

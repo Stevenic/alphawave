@@ -7,7 +7,7 @@ export interface OpenAIClientOptions {
     apiKey: string;
     organization?: string;
     endpoint?: string;
-    logPrompt?: boolean;
+    logRequests?: boolean;
 }
 
 /**
@@ -55,7 +55,7 @@ export class OpenAIClient implements PromptCompletionClient {
             if (result.tooLong) {
                 return { status: 'too_long', message: `The generated text completion prompt had a length of ${result.length} tokens which exceeded the max_input_tokens of ${max_input_tokens}.` };
             }
-            if (this.options.logPrompt) {
+            if (this.options.logRequests) {
                 console.log('PROMPT:');
                 console.log(result.output);
             }
@@ -66,7 +66,7 @@ export class OpenAIClient implements PromptCompletionClient {
                 prompt: result.output,
             }, options, ['max_tokens', 'temperature', 'top_p', 'n', 'stream', 'logprobs', 'echo', 'stop', 'presence_penalty', 'frequency_penalty', 'best_of', 'logit_bias', 'user']);
             const response = await this.createCompletion(request);
-            if (this.options.logPrompt) {
+            if (this.options.logRequests) {
                 console.log('RESPONSE:');
                 console.log(`status: ${response.status}\ndata:\n`);
                 console.log(response.data);
@@ -87,7 +87,7 @@ export class OpenAIClient implements PromptCompletionClient {
             if (result.tooLong) {
                 return { status: 'too_long', message: `The generated chat completion prompt had a length of ${result.length} tokens which exceeded the max_input_tokens of ${max_input_tokens}.` };
             }
-            if (this.options.logPrompt) {
+            if (this.options.logRequests) {
                 console.log('CHAT PROMPT:');
                 console.log(result.output);
             }
@@ -98,7 +98,7 @@ export class OpenAIClient implements PromptCompletionClient {
                 messages: result.output as ChatCompletionRequestMessage[],
             }, options, ['max_tokens', 'temperature', 'top_p', 'n', 'stream', 'logprobs', 'echo', 'stop', 'presence_penalty', 'frequency_penalty', 'best_of', 'logit_bias', 'user']);
             const response = await this.createChatCompletion(request);
-            if (this.options.logPrompt) {
+            if (this.options.logRequests) {
                 console.log('CHAT RESPONSE:');
                 console.log(`status: ${response.status}\ndata:\n`);
                 console.log(response.data);
