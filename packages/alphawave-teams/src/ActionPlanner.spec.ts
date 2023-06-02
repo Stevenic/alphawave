@@ -255,7 +255,7 @@ describe("ActionPlanner", () => {
             assert.equal(response, message);
         });
 
-        it("should complete a prompt uses a validator", async () => {
+        it("should complete a prompt that uses a validator", async () => {
             const state = createState();
             const message = JSON.stringify(validPlan);
             const planner = new ActionPlanner({
@@ -264,7 +264,7 @@ describe("ActionPlanner", () => {
                 validator: planValidator
             });
             const response = await planner.completePrompt(context as any, state, textPrompt, trackHistory);
-            assert.equal(response, message);
+            assert.deepEqual(response, validPlan);
         });
 
         it("should fail a prompt that uses a validator", async () => {
