@@ -7,11 +7,13 @@ import {
     PromptTemplate,
     PredictedSayCommand,
     PredictedDoCommand,
-    AI
+    PromptTemplateConfig,
+    AI,
+    AIHistoryOptions
 } from '@microsoft/teams-ai';
 import { TurnContext } from 'botbuilder';
 import { AlphaWave, AlphaWaveOptions,PromptCompletionClient, PromptCompletionOptions, PromptResponse, PromptResponseValidator, Response } from "alphawave";
-import { Message, TextSection, Tokenizer, Utilities, GPT3Tokenizer, UserMessage } from "promptrix";
+import { Message, TextSection, Tokenizer, Utilities, GPT3Tokenizer, UserMessage, PromptSection } from "promptrix";
 import { StateAsMemory } from './StateAsMemory';
 import { Prompt } from 'promptrix';
 import { ConversationHistory } from 'promptrix';
@@ -24,13 +26,14 @@ export interface ActionPlannerOptions {
     max_history_messages?: number;
     max_repair_attempts?: number;
     tokenizer?: Tokenizer;
-    validator?: PromptResponseValidator;
     use_system_role?: boolean;
     retry_invalid_responses?: boolean;
+    logRepairs?: boolean;
 }
 
 export class ActionPlanner<TState extends TurnState = DefaultTurnState> implements Planner<TState> {
     private readonly _options: ActionPlannerOptions;
+    private readonly _validators: Map<string, PromptResponseValidator> = new Map<string, PromptResponseValidator>();
 
     public static readonly InvalidResponseActionName = '__invalid_response__';
     public static readonly TooLongActionName = '__too_long__';
@@ -47,26 +50,24 @@ export class ActionPlanner<TState extends TurnState = DefaultTurnState> implemen
         return this._options;
     }
 
+    public addValidator(name: string, validator: PromptResponseValidator): this {
+        if (this._validators.has(name)) {
+            throw new Error(`A validator with a name of '${name}' already exists.`);
+        }
+
+        this._validators.set(name, validator);
+        return this;
+    }
+
     public async completePrompt(context: TurnContext, state: TState, inputPrompt: PromptTemplate, options: ConfiguredAIOptions<TState>): Promise<string | undefined> {
         // Wrap state as memory
         const memory = new StateAsMemory<TState>(context, state);
 
         // Initialize history options
-        let history_variable = 'temp.history';
-        let max_history_messages = 10;
+        const historyOptions = this.getHistoryOptions(inputPrompt.config as ExtendedPromptTemplateConfig);
+        const history_variable = historyOptions.trackHistory ? this._options.history_variable ?? 'conversation.history' : 'temp.history';
+        const max_history_messages = historyOptions.maxTurns * 2;
         const input_variable = this._options.input_variable ?? 'temp.input';
-        if (options.history.trackHistory) {
-            history_variable = this._options.history_variable ?? 'conversation.history';
-            max_history_messages = options.history.maxTurns * 2;
-        }
-
-        // Create prompt
-        const prompt = new Prompt([
-            new TextSection(inputPrompt.text, this._options.use_system_role ? 'system' : 'user'),
-            new ConversationHistory(history_variable),
-            new UserMessage(`{{$${input_variable}}}`)
-        ]);
-
 
         // Create prompt options
         const prompt_options: PromptCompletionOptions  = Object.assign({}, this._options.prompt_options, inputPrompt.config.completion as any);
@@ -79,8 +80,26 @@ export class ActionPlanner<TState extends TurnState = DefaultTurnState> implemen
             }
         }
 
-        // Create AlphaWave instance
+        // Create list of prompt sections
+        const sections: PromptSection[] = [
+            new TextSection(inputPrompt.text, this._options.use_system_role ? 'system' : 'user'),
+            new ConversationHistory(history_variable, historyOptions.maxTokens, false, historyOptions.userPrefix, historyOptions.assistantPrefix, historyOptions.lineSeparator)
+        ];
+        if (historyOptions.trackHistory && prompt_options.completion_type == 'chat' && memory.has(input_variable) && memory.get(input_variable)) {
+            sections.push(new UserMessage(`{{$${input_variable}}}`));
+        }
+
+        // Create prompt
+        const prompt = new Prompt(sections);
+
+        // Get validator
         const waveOptions: AlphaWaveOptions = Object.assign({}, this._options, { memory, prompt, prompt_options, history_variable, max_history_messages, input_variable });
+        const validator = this.getValidator(inputPrompt.config as ExtendedPromptTemplateConfig);
+        if (validator) {
+            waveOptions.validator = validator;
+        }
+
+        // Create AlphaWave instance
         const alphaWave = new AlphaWave(waveOptions);
 
         // Complete prompt
@@ -96,7 +115,13 @@ export class ActionPlanner<TState extends TurnState = DefaultTurnState> implemen
         // Process response
         switch (response!.status) {
             case 'success':
-                return (response!.message as Message).content;
+                // Convert response to string
+                const content = (response!.message as Message).content;
+                if (typeof content == 'object' && content != null) {
+                    return JSON.stringify(content);
+                } else {
+                    return content.toString();
+                }
             case 'error':
                 throw new Error(response!.message as string);
             default:
@@ -109,20 +134,10 @@ export class ActionPlanner<TState extends TurnState = DefaultTurnState> implemen
         const memory = new StateAsMemory<TState>(context, state);
 
         // Initialize history options
-        let history_variable = 'temp.history';
-        let max_history_messages = 10;
+        const historyOptions = this.getHistoryOptions(inputPrompt.config as ExtendedPromptTemplateConfig);
+        const history_variable = historyOptions.trackHistory ? this._options.history_variable ?? 'conversation.history' : 'temp.history';
+        const max_history_messages = historyOptions.maxTurns * 2;
         const input_variable = this._options.input_variable ?? 'temp.input';
-        if (options.history.trackHistory) {
-            history_variable = this._options.history_variable ?? 'conversation.history';
-            max_history_messages = options.history.maxTurns * 2;
-        }
-
-        // Create prompt
-        const prompt = new Prompt([
-            new TextSection(inputPrompt.text, this._options.use_system_role ? 'system' : 'user'),
-            new ConversationHistory(history_variable),
-            new UserMessage(`{{$${input_variable}}}`)
-        ]);
 
         // Create prompt options
         const prompt_options: PromptCompletionOptions  = Object.assign({}, this._options.prompt_options, inputPrompt.config.completion as any);
@@ -135,8 +150,26 @@ export class ActionPlanner<TState extends TurnState = DefaultTurnState> implemen
             }
         }
 
-        // Create AlphaWave instance
+        // Create list of prompt sections
+        const sections: PromptSection[] = [
+            new TextSection(inputPrompt.text, this._options.use_system_role ? 'system' : 'user'),
+            new ConversationHistory(history_variable, historyOptions.maxTokens, false, historyOptions.userPrefix, historyOptions.assistantPrefix, historyOptions.lineSeparator)
+        ];
+        if (historyOptions.trackHistory && prompt_options.completion_type == 'chat' && memory.has(input_variable) && memory.get(input_variable)) {
+            sections.push(new UserMessage(`{{$${input_variable}}}`));
+        }
+
+        // Create prompt
+        const prompt = new Prompt(sections);
+
+        // Get validator
         const waveOptions: AlphaWaveOptions = Object.assign({}, this._options, { memory, prompt, prompt_options, history_variable, max_history_messages, input_variable });
+        const validator = this.getValidator(inputPrompt.config as ExtendedPromptTemplateConfig);
+        if (validator) {
+            waveOptions.validator = validator;
+        }
+
+        // Create AlphaWave instance
         const alphaWave = new AlphaWave(waveOptions);
 
         // Complete prompt
@@ -170,6 +203,33 @@ export class ActionPlanner<TState extends TurnState = DefaultTurnState> implemen
                 throw new Error(response!.message as string);
         }
     }
+
+    private getHistoryOptions(config: ExtendedPromptTemplateConfig): AIHistoryOptions {
+        return Object.assign({
+            trackHistory: false,
+            maxTurns: 5,
+            maxTokens: 1000,
+            lineSeparator: '\n',
+            userPrefix: 'user: ',
+            assistantPrefix: 'assistant: ',
+            assistantHistoryType: 'text'
+        }, config.history);
+    }
+
+    private getValidator(config: ExtendedPromptTemplateConfig): PromptResponseValidator|undefined {
+        if (config.validator) {
+            const validator = this._validators.get(config.validator);
+            if (!validator) {
+                throw new Error(`A validator named '${config.validator}' couldn't be found.`);
+            }
+            return validator;
+        }
+
+        return undefined;;
+    }
 }
 
-
+interface ExtendedPromptTemplateConfig extends PromptTemplateConfig {
+    validator?: string;
+    history?:  AIHistoryOptions;
+}

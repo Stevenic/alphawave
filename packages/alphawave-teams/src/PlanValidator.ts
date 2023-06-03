@@ -1,4 +1,4 @@
-import { PromptResponseValidator, ResponseValidation, JSONResponseValidator, PromptResponse } from "alphawave";
+import { PromptResponseValidator, Validation, JSONResponseValidator, PromptResponse } from "alphawave";
 import { PromptMemory, PromptFunctions, Tokenizer} from "promptrix";
 import { Plan, PredictedDoCommand, PredictedSayCommand } from "@microsoft/teams-ai";
 import { Schema, Validator } from "jsonschema";
@@ -16,16 +16,16 @@ export class PlanValidator implements PromptResponseValidator {
         return this;
     }
 
-    public async validateResponse(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse): Promise<ResponseValidation> {
+    public async validateResponse(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse, remaining_attempts: number): Promise<Validation> {
         // Validate that the response contains a plan
-        const validationResult = await this.planSchemaValidator.validateResponse(memory, functions, tokenizer, response);
+        const validationResult = await this.planSchemaValidator.validateResponse(memory, functions, tokenizer, response, remaining_attempts);
         if (!validationResult.valid) {
             return validationResult;
         }
 
         // Validate that the plan is structurally correct
         const hasActions = this._actions.size > 0;
-        const plan = validationResult.content as Plan;
+        const plan = validationResult.value as Plan;
         for (let i = 0; i < plan.commands.length; i++) {
             const command = plan.commands[i];
             if (command.type === "DO") {
@@ -34,9 +34,9 @@ export class PlanValidator implements PromptResponseValidator {
                 const action = doCommand.action;
                 if (!action) {
                     return {
-                        type: "ResponseValidation",
+                        type: "Validation",
                         valid: false,
-                        feedback: `The plan JSON is missing the DO "action" for command[${i}]. Try again.`
+                        feedback: `The plan JSON is missing the DO "action" for command[${i}]. Return a JSON object that fixes these errors.`
                     };
                 }
 
@@ -44,9 +44,9 @@ export class PlanValidator implements PromptResponseValidator {
                 if (hasActions) {
                     if (!this._actions.has(action)) {
                         return {
-                            type: "ResponseValidation",
+                            type: "Validation",
                             valid: false,
-                            feedback: `The plan JSON is using an Unknown action "${action}" for command[${i}]. Try again.`
+                            feedback: `The plan JSON is using an Unknown action "${action}" for command[${i}]. Return a JSON object that fixes these errors.`
                         };
                     }
 
@@ -57,12 +57,12 @@ export class PlanValidator implements PromptResponseValidator {
                         if (!validationResult.valid) {
                             const errors = validationResult.errors.map(e => {
                                 const property = e.property.indexOf('.') >= 0 ? 'entities.' + e.property.split('.').slice(1).join('.') : 'entities';
-                                return  `"${property}": ${e.message}`;
+                                return  `"${property}" ${e.message}`;
                             }).join('\n');
                             return {
-                                type: "ResponseValidation",
+                                type: "Validation",
                                 valid: false,
-                                feedback: `The plan JSON has invalid entities for action "${action}" for command[${i}]:\n${errors}\n\nTry again.`
+                                feedback: `The plan JSON has invalid entities for action "${action}" for command[${i}]:\n${errors}\n\nReturn a JSON object that fixes these errors.`
                             };
                         }
                     }
@@ -73,18 +73,18 @@ export class PlanValidator implements PromptResponseValidator {
                 const response = sayCommand.response;
                 if (!response) {
                     return {
-                        type: "ResponseValidation",
+                        type: "Validation",
                         valid: false,
-                        feedback: `The plan JSON is missing the SAY "response" for command[${i}]. Try again.`
+                        feedback: `The plan JSON is missing the SAY "response" for command[${i}]. Return a JSON object that fixes these errors.`
                     };
                 }
             }
         }
 
         return {
-            type: "ResponseValidation",
+            type: "Validation",
             valid: true,
-            content: plan
+            value: plan
         };
     }
 }

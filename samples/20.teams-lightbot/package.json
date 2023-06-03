@@ -30,6 +30,7 @@
     "devDependencies": {
         "@types/dotenv": "6.1.1",
         "@types/restify": "8.4.2",
+        "@types/jsonwebtoken": "9.0.2",
         "nodemon": "~1.19.4",
         "tslint": "~5.20.0",
         "typescript": "^4.6.4",

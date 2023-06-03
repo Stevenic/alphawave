@@ -98,6 +98,25 @@ describe("ActionPlanner", () => {
             ]
         }
     };
+    const validatedPrompt: PromptTemplate = {
+        text: 'What is your name?',
+        config: {
+            "schema": 1,
+            "description": "Answers a players request for help.",
+            "type": "completion",
+            "completion": {
+              "max_tokens": 1000,
+              "temperature": 0.7,
+              "top_p": 1.0,
+              "presence_penalty": 0.6,
+              "frequency_penalty": 0.0
+            },
+            "default_backends": [
+                "text-davinci-003"
+            ],
+            "validator": "planner"
+        } as any
+    };
     const validPlan: Plan = {
         type: 'plan',
         commands: [
@@ -134,7 +153,7 @@ describe("ActionPlanner", () => {
                 type: 'DO',
                 action: ActionPlanner.InvalidResponseActionName,
                 entities: {
-                    message: 'No JSON objects were found in the response. Try again.'
+                    message: 'No valid JSON objects were found in the response. Return a valid JSON object.'
                 }
             } as PredictedDoCommand
         ]
@@ -176,12 +195,14 @@ describe("ActionPlanner", () => {
                 client: new TestClient(),
                 prompt_options: { completion_type: 'chat', model: 'gpt-3.5-turbo' },
                 tokenizer: tokenizer,
+                logRepairs: true,
             });
             assert.notEqual(planner, undefined);
             assert.equal(planner.client instanceof TestClient, true);
             assert.notEqual(planner.options, undefined);
             assert.notEqual(planner.options.prompt_options, undefined);
             assert.equal(planner.options.tokenizer, tokenizer);
+            assert.equal(planner.options.logRepairs, true);
         });
     });
 
@@ -260,10 +281,9 @@ describe("ActionPlanner", () => {
             const message = JSON.stringify(validPlan);
             const planner = new ActionPlanner({
                 client: new TestClient('success', message),
-                prompt_options: { completion_type: 'chat', model: 'gpt-3.5-turbo' },
-                validator: planValidator
-            });
-            const response = await planner.completePrompt(context as any, state, textPrompt, trackHistory);
+                prompt_options: { completion_type: 'chat', model: 'gpt-3.5-turbo' }
+            }).addValidator('planner', planValidator);
+            const response = await planner.completePrompt(context as any, state, validatedPrompt, trackHistory);
             assert.deepEqual(response, validPlan);
         });
 
@@ -272,9 +292,8 @@ describe("ActionPlanner", () => {
             const planner = new ActionPlanner({
                 client: new TestClient('success', 'no plan found'),
                 prompt_options: { completion_type: 'chat', model: 'gpt-3.5-turbo' },
-                validator: planValidator
-            });
-            const response = await planner.completePrompt(context as any, state, textPrompt, trackHistory);
+            }).addValidator('planner', planValidator);
+            const response = await planner.completePrompt(context as any, state, validatedPrompt, trackHistory);
             assert.equal(response, undefined);
         });
 
@@ -283,10 +302,9 @@ describe("ActionPlanner", () => {
             const planner = new ActionPlanner({
                 client: new TestClient('success', 'no plan found'),
                 prompt_options: { completion_type: 'chat', model: 'gpt-3.5-turbo' },
-                validator: planValidator,
                 retry_invalid_responses: true
-            });
-            const response = await planner.completePrompt(context as any, state, textPrompt, trackHistory);
+            }).addValidator('planner', planValidator);
+            const response = await planner.completePrompt(context as any, state, validatedPrompt, trackHistory);
             assert.equal(response, undefined);
         });
 
@@ -388,9 +406,8 @@ describe("ActionPlanner", () => {
             const planner = new ActionPlanner({
                 client: new TestClient('success', message),
                 prompt_options: { completion_type: 'chat', model: 'gpt-3.5-turbo' },
-                validator: planValidator
-            });
-            const plan = await planner.generatePlan(context as any, state, textPrompt, trackHistory);
+            }).addValidator('planner', planValidator);
+            const plan = await planner.generatePlan(context as any, state, validatedPrompt, trackHistory);
             assert.deepEqual(plan, validPlan);
         });
 
@@ -399,9 +416,8 @@ describe("ActionPlanner", () => {
             const planner = new ActionPlanner({
                 client: new TestClient('success', 'no plan found'),
                 prompt_options: { completion_type: 'chat', model: 'gpt-3.5-turbo' },
-                validator: planValidator
-            });
-            const plan = await planner.generatePlan(context as any, state, textPrompt, trackHistory);
+            }).addValidator('planner', planValidator);
+            const plan = await planner.generatePlan(context as any, state, validatedPrompt, trackHistory);
             assert.deepEqual(plan, invalidResponsePlan);
         });
 
@@ -410,10 +426,9 @@ describe("ActionPlanner", () => {
             const planner = new ActionPlanner({
                 client: new TestClient('success', 'no plan found'),
                 prompt_options: { completion_type: 'chat', model: 'gpt-3.5-turbo' },
-                validator: planValidator,
                 retry_invalid_responses: true
-            });
-            const plan = await planner.generatePlan(context as any, state, textPrompt, trackHistory);
+            }).addValidator('planner', planValidator);
+            const plan = await planner.generatePlan(context as any, state, validatedPrompt, trackHistory);
             assert.deepEqual(plan, invalidResponsePlan);
         });
 
@@ -422,9 +437,8 @@ describe("ActionPlanner", () => {
             const planner = new ActionPlanner({
                 client: new TestClient('rate_limited'),
                 prompt_options: { completion_type: 'chat', model: 'gpt-3.5-turbo' },
-                validator: planValidator
-            });
-            const plan = await planner.generatePlan(context as any, state, textPrompt, trackHistory);
+            }).addValidator('planner', planValidator);
+            const plan = await planner.generatePlan(context as any, state, validatedPrompt, trackHistory);
             assert.deepEqual(plan, rateLimitedPlan);
         });
 
@@ -433,9 +447,8 @@ describe("ActionPlanner", () => {
             const planner = new ActionPlanner({
                 client: new TestClient('too_long'),
                 prompt_options: { completion_type: 'chat', model: 'gpt-3.5-turbo' },
-                validator: planValidator
-            });
-            const plan = await planner.generatePlan(context as any, state, textPrompt, trackHistory);
+            }).addValidator('planner', planValidator);
+            const plan = await planner.generatePlan(context as any, state, validatedPrompt, trackHistory);
             assert.deepEqual(plan, tooLongPlan);
         });
 
@@ -444,10 +457,9 @@ describe("ActionPlanner", () => {
             const planner = new ActionPlanner({
                 client: new TestClient('error', 'something went wrong'),
                 prompt_options: { completion_type: 'chat', model: 'gpt-3.5-turbo' },
-                validator: planValidator
-            });
+            }).addValidator('planner', planValidator);
             await assert.rejects(async () => {
-                await planner.generatePlan(context as any, state, textPrompt, trackHistory);
+                await planner.generatePlan(context as any, state, validatedPrompt, trackHistory);
             });
         });
     });

@@ -1,2 +1,2 @@
-export * from "./colorizeJson";
+export * from "./Colorize";
 export * from "./types";

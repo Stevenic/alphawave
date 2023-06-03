@@ -6,7 +6,7 @@ export interface PromptCompletionClient {
 }
 
 export interface PromptResponseValidator {
-    validateResponse(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse): Promise<ResponseValidation>;
+    validateResponse(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse, remaining_attempts: number): Promise<Validation>;
 }
 
 export interface PromptCompletionOptions {
@@ -30,9 +30,9 @@ export interface PromptResponse {
     message: Message<any>|string;
 }
 
-export interface ResponseValidation<TContent = any> {
-    type: 'ResponseValidation';
+export interface Validation<TValue = any> {
+    type: 'Validation';
     valid: boolean;
     feedback?: string;
-    content?: TContent;
+    value?: TValue;
 }

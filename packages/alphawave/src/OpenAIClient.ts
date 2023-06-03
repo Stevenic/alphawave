@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { PromptFunctions, PromptMemory, PromptSection, Tokenizer } from "promptrix";
 import { PromptCompletionClient, PromptCompletionOptions, PromptResponse } from "./types";
 import { ChatCompletionRequestMessage, CreateChatCompletionRequest, CreateChatCompletionResponse, CreateCompletionRequest, CreateCompletionResponse } from "./internals";
-import { colorizeJson } from "./internals";
+import { Colorize } from "./internals";
 
 export interface OpenAIClientOptions {
     apiKey: string;
@@ -58,8 +58,8 @@ export class OpenAIClient implements PromptCompletionClient {
                 return { status: 'too_long', message: `The generated text completion prompt had a length of ${result.length} tokens which exceeded the max_input_tokens of ${max_input_tokens}.` };
             }
             if (this.options.logRequests) {
-                console.log('\u001b[35;1mPROMPT:\u001b[0m');
-                console.log(colorizeJson(result.output));
+                console.log(Colorize.title('PROMPT:'));
+                console.log(Colorize.output(result.output));
             }
 
             // Call text completion API
@@ -69,10 +69,10 @@ export class OpenAIClient implements PromptCompletionClient {
             }, options, ['max_tokens', 'temperature', 'top_p', 'n', 'stream', 'logprobs', 'echo', 'stop', 'presence_penalty', 'frequency_penalty', 'best_of', 'logit_bias', 'user']);
             const response = await this.createCompletion(request);
             if (this.options.logRequests) {
-                console.log('\u001b[35;1mRESPONSE:\u001b[0m');
-                console.log(`status: \u001b[34m${response.status}\u001b[0m`);
-                console.log(`duration: \u001b[34m${Date.now() - startTime}ms\u001b[0m`);
-                console.log(colorizeJson(response.data));
+                console.log(Colorize.title('RESPONSE:'));
+                console.log(Colorize.value('statuse', response.status));
+                console.log(Colorize.value('duration', Date.now() - startTime, 'ms'));
+                console.log(Colorize.output(response.data));
             }
 
             // Process response
@@ -81,8 +81,8 @@ export class OpenAIClient implements PromptCompletionClient {
                 return { status: 'success', message: { role: 'assistant', content: completion.text ?? '' } };
             } else if (response.status == 429) {
                 if (this.options.logRequests) {
-                    console.log('\u001b[35;1mHEADERS:\u001b[0m');
-                    console.log(colorizeJson(response.headers));
+                    console.log(Colorize.title('HEADERS:'));
+                    console.log(Colorize.output(response.headers));
                 }
                 return { status: 'rate_limited', message: `The text completion API returned a rate limit error.` }
             } else {
@@ -95,8 +95,8 @@ export class OpenAIClient implements PromptCompletionClient {
                 return { status: 'too_long', message: `The generated chat completion prompt had a length of ${result.length} tokens which exceeded the max_input_tokens of ${max_input_tokens}.` };
             }
             if (this.options.logRequests) {
-                console.log('\u001b[35;1mCHAT PROMPT:\u001b[0m');
-                console.log(colorizeJson(result.output));
+                console.log(Colorize.title('CHAT PROMPT:'));
+                console.log(Colorize.output(result.output));
             }
 
             // Call chat completion API
@@ -106,10 +106,10 @@ export class OpenAIClient implements PromptCompletionClient {
             }, options, ['max_tokens', 'temperature', 'top_p', 'n', 'stream', 'logprobs', 'echo', 'stop', 'presence_penalty', 'frequency_penalty', 'best_of', 'logit_bias', 'user']);
             const response = await this.createChatCompletion(request);
             if (this.options.logRequests) {
-                console.log('\u001b[35;1mCHAT RESPONSE:\u001b[0m');
-                console.log(`status: \u001b[34m${response.status}\u001b[0m`);
-                console.log(`duration: \u001b[34m${Date.now() - startTime}ms\u001b[0m`);
-                console.log(colorizeJson(response.data));
+                console.log(Colorize.title('CHAT RESPONSE:'));
+                console.log(Colorize.value('statuse', response.status));
+                console.log(Colorize.value('duration', Date.now() - startTime, 'ms'));
+                console.log(Colorize.output(response.data));
             }
 
             // Process response
@@ -118,8 +118,8 @@ export class OpenAIClient implements PromptCompletionClient {
                 return { status: 'success', message: completion.message ?? { role: 'assistant', content: '' } };
             } else if (response.status == 429) {
                 if (this.options.logRequests) {
-                    console.log('\u001b[35;1mHEADERS:\u001b[0m');
-                    console.log(colorizeJson(response.headers));
+                    console.log(Colorize.title('HEADERS:'));
+                    console.log(Colorize.output(response.headers));
                 }
                 return { status: 'rate_limited', message: `The chat completion API returned a rate limit error.` }
             } else {

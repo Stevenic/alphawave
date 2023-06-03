@@ -33,76 +33,76 @@ describe("JSONResponseValidator", () => {
     describe("validateResponse", () => {
         it("should pass a JSON object with no schema", async () => {
             const validator = new JSONResponseValidator();
-            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '{"foo":"bar"}' });
+            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '{"foo":"bar"}' }, 3);
             assert.notEqual(response, undefined);
             assert.equal(response.valid, true);
-            assert.deepEqual(response.content, { foo: 'bar' });
+            assert.deepEqual(response.value, { foo: 'bar' });
         });
 
         it("should pass a JSON object passed in as a message", async () => {
             const validator = new JSONResponseValidator();
-            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: { role: 'assstant', content: '{"foo":"bar"}' } });
+            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: { role: 'assstant', content: '{"foo":"bar"}' } }, 3);
             assert.notEqual(response, undefined);
             assert.equal(response.valid, true);
-            assert.deepEqual(response.content, { foo: 'bar' });
+            assert.deepEqual(response.value, { foo: 'bar' });
         });
 
         it("should pass a JSON object with schema", async () => {
             const validator = new JSONResponseValidator(schema);
-            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '{"foo":"bar"}' });
+            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '{"foo":"bar"}' }, 3);
             assert.notEqual(response, undefined);
             assert.equal(response.valid, true);
-            assert.deepEqual(response.content, { foo: 'bar' });
+            assert.deepEqual(response.value, { foo: 'bar' });
         });
 
         it("should fail a response with no JSON object", async () => {
             const validator = new JSONResponseValidator();
-            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '' });
+            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '' }, 3);
             assert.notEqual(response, undefined);
             assert.equal(response.valid, false);
-            assert.equal(response.feedback, 'No JSON objects were found in the response. Try again.');
-            assert.equal(response.content, undefined);
+            assert.equal(response.feedback, 'No valid JSON objects were found in the response. Return a valid JSON object.');
+            assert.equal(response.value, undefined);
         });
 
         it("should fail a response with no JSON object as a message", async () => {
             const validator = new JSONResponseValidator();
-            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: { role: 'assistant', content: undefined } });
+            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: { role: 'assistant', content: undefined } }, 3);
             assert.notEqual(response, undefined);
             assert.equal(response.valid, false);
-            assert.equal(response.feedback, 'No JSON objects were found in the response. Try again.');
-            assert.equal(response.content, undefined);
+            assert.equal(response.feedback, 'No valid JSON objects were found in the response. Return a valid JSON object.');
+            assert.equal(response.value, undefined);
         });
 
         it("should fail a JSON object that doesn't match schema", async () => {
             const validator = new JSONResponseValidator(schema);
-            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '{"foo":7}' });
+            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '{"foo":7}' }, 3);
             assert.notEqual(response, undefined);
             assert.equal(response.valid, false);
-            assert.equal(response.feedback, `The JSON returned had the following errors:\n"foo": is not of a type(s) string\n\nTry again.`);
+            assert.equal(response.feedback, `The JSON returned had the following errors:\n"instance.foo" is not of a type(s) string\n\nReturn a JSON object that fixes these errors.`);
         });
 
         it("should validate multiple objects in a response and return the last valid one", async () => {
             const validator = new JSONResponseValidator(schema);
-            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '{"foo":"taco"}\n{"foo":"bar"}' });
+            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '{"foo":"taco"}\n{"foo":"bar"}' }, 3);
             assert.notEqual(response, undefined);
             assert.equal(response.valid, true);
-            assert.deepEqual(response.content, { foo: 'bar' });
+            assert.deepEqual(response.value, { foo: 'bar' });
         });
 
         it("should validate multiple objects in a response and return the only valid one", async () => {
             const validator = new JSONResponseValidator(schema);
-            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '{"foo":1}\n{"foo":"bar"}\n{"foo":3}' });
+            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '{"foo":1}\n{"foo":"bar"}\n{"foo":3}' }, 3);
             assert.notEqual(response, undefined);
             assert.equal(response.valid, true);
-            assert.deepEqual(response.content, { foo: 'bar' });
+            assert.deepEqual(response.value, { foo: 'bar' });
         });
 
         it("should validate multiple objects ", async () => {
             const validator = new JSONResponseValidator(schema);
-            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '{"bar":"foo"}\n{"foo":3}' });
+            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '{"bar":"foo"}\n{"foo":3}' }, 3);
             assert.notEqual(response, undefined);
             assert.equal(response.valid, false);
-            assert.equal(response.feedback, `The JSON returned had the following errors:\n"foo": is not of a type(s) string\n\nTry again.`);
+            assert.equal(response.feedback, `The JSON returned had the following errors:\n"instance.foo" is not of a type(s) string\n\nReturn a JSON object that fixes these errors.`);
         });
     });
 });

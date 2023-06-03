@@ -1,6 +1,6 @@
 import { strict as assert } from "assert";
 import { Message, FunctionRegistry, GPT3Tokenizer, Prompt, PromptFunctions, PromptMemory, Tokenizer, VolatileMemory } from "promptrix";
-import { PromptCompletionOptions, PromptResponse, PromptResponseValidator, ResponseValidation } from "./types";
+import { PromptCompletionOptions, PromptResponse, PromptResponseValidator, Validation } from "./types";
 import { DefaultResponseValidator } from "./DefaultResponseValidator";
 import { TestClient } from "./TestClient";
 import { AlphaWave } from "./AlphaWave";
@@ -14,7 +14,7 @@ class TestValidator implements PromptResponseValidator {
 
     public constructor(public client: TestClient) { }
 
-    public validateResponse(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse): Promise<ResponseValidation> {
+    public validateResponse(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse, remaining_attempts: number): Promise<Validation> {
         if (this.exception) {
             const exception = this.exception;
             this.exception = undefined;
@@ -26,15 +26,15 @@ class TestValidator implements PromptResponseValidator {
             this.clientErrorDuringRepair = false;
             this.client.status = 'error';
             this.client.response = 'Some Error';
-            return Promise.resolve({ type: 'ResponseValidation', valid: false, feedback: this.feedback });
+            return Promise.resolve({ type: 'Validation', valid: false, feedback: this.feedback });
         } else if (this.repairAttempts > 0) {
             this.repairAttempts--;
-            return Promise.resolve({ type: 'ResponseValidation', valid: false, feedback: this.feedback });
+            return Promise.resolve({ type: 'Validation', valid: false, feedback: this.feedback });
         } else if (this.returnContent) {
             this.returnContent = false;
-            return Promise.resolve({ type: 'ResponseValidation', valid: true, content: (response.message as Message).content });
+            return Promise.resolve({ type: 'Validation', valid: true, value: (response.message as Message).content });
         } else {
-            return Promise.resolve({ type: 'ResponseValidation', valid: true });
+            return Promise.resolve({ type: 'Validation', valid: true });
         }
     }
 }

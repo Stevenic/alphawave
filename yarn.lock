@@ -38,6 +38,43 @@
     "@azure/logger" "^1.0.0"
     tslib "^2.2.0"
 
+"@azure/core-http@^3.0.0":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@azure/core-http/-/core-http-3.0.2.tgz#970c5a0ee27884d60a406eeec17a271413e45ff4"
+  integrity sha512-o1wR9JrmoM0xEAa0Ue7Sp8j+uJvmqYaGoHOCT5qaVYmvgmnZDC0OvQimPA/JR3u77Sz6D1y3Xmk1y69cDU9q9A==
+  dependencies:
+    "@azure/abort-controller" "^1.0.0"
+    "@azure/core-auth" "^1.3.0"
+    "@azure/core-tracing" "1.0.0-preview.13"
+    "@azure/core-util" "^1.1.1"
+    "@azure/logger" "^1.0.0"
+    "@types/node-fetch" "^2.5.0"
+    "@types/tunnel" "^0.0.3"
+    form-data "^4.0.0"
+    node-fetch "^2.6.7"
+    process "^0.11.10"
+    tslib "^2.2.0"
+    tunnel "^0.0.6"
+    uuid "^8.3.0"
+    xml2js "^0.5.0"
+
+"@azure/core-lro@^2.2.0":
+  version "2.5.3"
+  resolved "https://registry.yarnpkg.com/@azure/core-lro/-/core-lro-2.5.3.tgz#6bb74e76dd84071d319abf7025e8abffef091f91"
+  integrity sha512-ubkOf2YCnVtq7KqEJQqAI8dDD5rH1M6OP5kW0KO/JQyTaxLA0N0pjFWvvaysCj9eHMNBcuuoZXhhl0ypjod2DA==
+  dependencies:
+    "@azure/abort-controller" "^1.0.0"
+    "@azure/core-util" "^1.2.0"
+    "@azure/logger" "^1.0.0"
+    tslib "^2.2.0"
+
+"@azure/core-paging@^1.1.1":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@azure/core-paging/-/core-paging-1.5.0.tgz#5a5b09353e636072e6a7fc38f7879e11d0afb15f"
+  integrity sha512-zqWdVIt+2Z+3wqxEOGzR5hXFZ8MGKK52x4vFLw8n58pR6ZfKRx3EXYTxTaYxYHc/PexPUTyimcTWFJbji9Z6Iw==
+  dependencies:
+    tslib "^2.2.0"
+
 "@azure/core-rest-pipeline@^1.1.0", "@azure/core-rest-pipeline@^1.9.1":
   version "1.10.3"
   resolved "https://registry.yarnpkg.com/@azure/core-rest-pipeline/-/core-rest-pipeline-1.10.3.tgz#7603afd71ff3c290351dbeeab2c814832e47b8ef"
@@ -53,6 +90,14 @@
     https-proxy-agent "^5.0.0"
     tslib "^2.2.0"
 
+"@azure/core-tracing@1.0.0-preview.13":
+  version "1.0.0-preview.13"
+  resolved "https://registry.yarnpkg.com/@azure/core-tracing/-/core-tracing-1.0.0-preview.13.tgz#55883d40ae2042f6f1e12b17dd0c0d34c536d644"
+  integrity sha512-KxDlhXyMlh2Jhj2ykX6vNEU0Vou4nHr025KoSEiz7cS3BNiHNaZcdECk/DmLkEB0as5T7b/TpRcehJ5yV6NeXQ==
+  dependencies:
+    "@opentelemetry/api" "^1.0.1"
+    tslib "^2.2.0"
+
 "@azure/core-tracing@^1.0.0", "@azure/core-tracing@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@azure/core-tracing/-/core-tracing-1.0.1.tgz#352a38cbea438c4a83c86b314f48017d70ba9503"
@@ -60,7 +105,7 @@
   dependencies:
     tslib "^2.2.0"
 
-"@azure/core-util@^1.0.0", "@azure/core-util@^1.3.0":
+"@azure/core-util@^1.0.0", "@azure/core-util@^1.1.1", "@azure/core-util@^1.2.0", "@azure/core-util@^1.3.0":
   version "1.3.2"
   resolved "https://registry.yarnpkg.com/@azure/core-util/-/core-util-1.3.2.tgz#3f8cfda1e87fac0ce84f8c1a42fcd6d2a986632d"
   integrity sha512-2bECOUh88RvL1pMZTcc6OzfobBeWDBf5oBbhjIhT1MV9otMVWCzpOJkkiKtrnO88y5GGBelgY8At73KGAdbkeQ==
@@ -137,6 +182,20 @@
     "@azure/msal-common" "13.0.0"
     jsonwebtoken "^9.0.0"
     uuid "^8.3.0"
+
+"@azure/storage-blob@^12.2.1":
+  version "12.14.0"
+  resolved "https://registry.yarnpkg.com/@azure/storage-blob/-/storage-blob-12.14.0.tgz#32d3e5fa3bb2a12d5d44b186aed11c8e78f00178"
+  integrity sha512-g8GNUDpMisGXzBeD+sKphhH5yLwesB4JkHr1U6be/X3F+cAMcyGLPD1P89g2M7wbEtUJWoikry1rlr83nNRBzg==
+  dependencies:
+    "@azure/abort-controller" "^1.0.0"
+    "@azure/core-http" "^3.0.0"
+    "@azure/core-lro" "^2.2.0"
+    "@azure/core-paging" "^1.1.1"
+    "@azure/core-tracing" "1.0.0-preview.13"
+    "@azure/logger" "^1.0.0"
+    events "^3.0.0"
+    tslib "^2.2.0"
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.21.4":
   version "7.21.4"
@@ -487,6 +546,11 @@
     extsprintf "^1.4.0"
     lodash "^4.17.15"
 
+"@opentelemetry/api@^1.0.1":
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/@opentelemetry/api/-/api-1.4.1.tgz#ff22eb2e5d476fbc2450a196e40dd243cc20c28f"
+  integrity sha512-O2yRJce1GOc6PAy3QxFM4NzFiWzvScDC1/5ihYBL6BUEVdq0XMWN01sppE+H6bBXbaFYipjwFLEWLg5PaSOThA==
+
 "@tootallnate/once@2":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-2.0.0.tgz#f544a148d3ab35801c1f633a7441fd87c2e484bf"
@@ -563,10 +627,25 @@
   resolved "https://registry.yarnpkg.com/@types/json5/-/json5-0.0.29.tgz#ee28707ae94e11d2b827bcbe5270bcea7f3e71ee"
   integrity sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==
 
+"@types/jsonwebtoken@9.0.2":
+  version "9.0.2"
+  resolved "https://registry.yarnpkg.com/@types/jsonwebtoken/-/jsonwebtoken-9.0.2.tgz#9eeb56c76dd555039be2a3972218de5bd3b8d83e"
+  integrity sha512-drE6uz7QBKq1fYqqoFKTDRdFCPHd5TCub75BM+D+cMx7NU9hUz7SESLfC2fSCXVFMO5Yj8sOWHuGqPgjc+fz0Q==
+  dependencies:
+    "@types/node" "*"
+
 "@types/mocha@^8.0.3", "@types/mocha@^8.2.0":
   version "8.2.3"
   resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-8.2.3.tgz#bbeb55fbc73f28ea6de601fbfa4613f58d785323"
   integrity sha512-ekGvFhFgrc2zYQoX4JeZPmVzZxw6Dtllga7iGHzfbYIYkAMUx/sAFP2GdFpLff+vdHXu5fl7WX9AT+TtqYcsyw==
+
+"@types/node-fetch@^2.5.0":
+  version "2.6.4"
+  resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.6.4.tgz#1bc3a26de814f6bf466b25aeb1473fa1afe6a660"
+  integrity sha512-1ZX9fcN4Rvkvgv4E6PAY5WXUFWFcRWxZa3EW83UjycOB9ljJCedb2CupIP4RZMEwF/M3eTcCihbBRgwtGbg5Rg==
+  dependencies:
+    "@types/node" "*"
+    form-data "^3.0.0"
 
 "@types/node@*":
   version "20.2.5"
@@ -597,6 +676,13 @@
   version "3.4.5"
   resolved "https://registry.yarnpkg.com/@types/spdy/-/spdy-3.4.5.tgz#194dc132312ddcd31e8053789ae83a7bb32a8aaf"
   integrity sha512-/33fIRK/aqkKNxg9BSjpzt1ucmvPremgeDywm9z2C2mOlIh5Ljjvgc3UhQHqwXsSLDLHPT9jlsnrjKQ1XiVJzA==
+  dependencies:
+    "@types/node" "*"
+
+"@types/tunnel@^0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@types/tunnel/-/tunnel-0.0.3.tgz#f109e730b072b3136347561fc558c9358bb8c6e9"
+  integrity sha512-sOUTGn6h1SfQ+gbgqC364jLFBw2lnFqkgF3q0WovEHRLMrVD1sd5aufqi/aJObLekJO+Aq5z646U4Oxy6shXMA==
   dependencies:
     "@types/node" "*"
 
@@ -675,15 +761,27 @@ aggregate-error@^3.0.0:
     clean-stack "^2.0.0"
     indent-string "^4.0.0"
 
-alphawave@~0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/alphawave/-/alphawave-0.2.0.tgz#5840a828d9e6fc63bc5abe358d9487b1f9293250"
-  integrity sha512-olxGUH3slLbeMvMfnscBbx5+/ISuzy3cWt3NjqpLhxUgYkq5NC0mfRzoV2D5fRuDGI9WBf6HE+MyahO2xwof0A==
+alphawave-teams@~0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/alphawave-teams/-/alphawave-teams-0.3.0.tgz#3016d2d958ef4af524235f3c7512f963993a1229"
+  integrity sha512-oro4D9J7xcgDOE2VCqF52hNrpJW70m3rWf+9mwZtHTxZM/JebBP7/PmuDkrXwMKvD6xIeGzH8xj7Omo2fFrbHg==
+  dependencies:
+    "@microsoft/teams-ai" "~0.1.0-preview.2"
+    alphawave "0.3.0"
+    botbuilder "^4.19.3"
+    jsonschema "1.4.1"
+    promptrix "^0.2.0"
+
+alphawave@0.3.0, alphawave@~0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/alphawave/-/alphawave-0.3.0.tgz#04b3449670b09d5eb850b510222c34d6e7bb9b3d"
+  integrity sha512-y8peUlTSSqXfkiWZm5G2Sih9aHWrBEzbxG2dWRPXL76jvnb4l2yKmaXgY522vnn/bj4NuKoWRWjPeY7VXk9bzw==
   dependencies:
     axios "^1.3.4"
     gpt-3-encoder "1.1.4"
+    json-colorizer "^2.2.2"
     jsonschema "1.4.1"
-    promptrix "^0.1.4"
+    promptrix "^0.2.0"
     yaml "2.3.1"
 
 ansi-align@^2.0.0:
@@ -945,6 +1043,18 @@ bluebird@^3.5.1:
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.7.2.tgz#9f229c15be272454ffa973ace0dbee79a1b0c36f"
   integrity sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==
 
+botbuilder-azure-blobs@^4.19.3:
+  version "4.20.0"
+  resolved "https://registry.yarnpkg.com/botbuilder-azure-blobs/-/botbuilder-azure-blobs-4.20.0.tgz#e79f506b7f4d3c74d01d2be8b989d62ece42c1f6"
+  integrity sha512-5D+tNar/XAr6BQwG1q+2Cq8KJH3Dn7DDLYybWsG1VAxym1W4qnJOjNs3eh4TVKzA8iMzxnOTXFiWWhshYFk0hA==
+  dependencies:
+    "@azure/storage-blob" "^12.2.1"
+    botbuilder-core "4.20.0"
+    botbuilder-stdlib "4.20.0-internal"
+    get-stream "^6.0.0"
+    p-map "^4.0.0"
+    zod "~1.11.17"
+
 botbuilder-core@4.19.3:
   version "4.19.3"
   resolved "https://registry.yarnpkg.com/botbuilder-core/-/botbuilder-core-4.19.3.tgz#6e7069c23eb0e72f64931c79cd9c8cea50b167d5"
@@ -957,10 +1067,29 @@ botbuilder-core@4.19.3:
     uuid "^8.3.2"
     zod "~1.11.17"
 
+botbuilder-core@4.20.0:
+  version "4.20.0"
+  resolved "https://registry.yarnpkg.com/botbuilder-core/-/botbuilder-core-4.20.0.tgz#50879930b48ec0b95fe316ce3750d938e586b177"
+  integrity sha512-UxJF31nkIuiVHerPhtJKAyzfIbdG7sTgsS4bXvCqkQvxaY+60p6mIwuxOZZQf3AIOPIxCysMKAmhfoaFyTc+Uw==
+  dependencies:
+    botbuilder-dialogs-adaptive-runtime-core "4.20.0-preview"
+    botbuilder-stdlib "4.20.0-internal"
+    botframework-connector "4.20.0"
+    botframework-schema "4.20.0"
+    uuid "^8.3.2"
+    zod "~1.11.17"
+
 botbuilder-dialogs-adaptive-runtime-core@4.19.3-preview:
   version "4.19.3-preview"
   resolved "https://registry.yarnpkg.com/botbuilder-dialogs-adaptive-runtime-core/-/botbuilder-dialogs-adaptive-runtime-core-4.19.3-preview.tgz#f9fa6d77c8303c44336fd3a08119be0c4c1df7fc"
   integrity sha512-VVAgt4BEC6BaDH1fURRs4t8T/a/CySbTLBE3GY3Xk3TdF0HzHKzA+bDlM7qR+20D9Yy52hFK97wYlimD8QRMpg==
+  dependencies:
+    dependency-graph "^0.10.0"
+
+botbuilder-dialogs-adaptive-runtime-core@4.20.0-preview:
+  version "4.20.0-preview"
+  resolved "https://registry.yarnpkg.com/botbuilder-dialogs-adaptive-runtime-core/-/botbuilder-dialogs-adaptive-runtime-core-4.20.0-preview.tgz#a4ed9887304d26e96138db7c5bc562f398c513cc"
+  integrity sha512-P7ezlaFsv5xPHGRYHHsb5UgvkbyxCj0OTHpIfIRCPYLWaKYrzcLI46zzIj76XImn/aYLUsKU7Xg/qw13l9sPKA==
   dependencies:
     dependency-graph "^0.10.0"
 
@@ -985,6 +1114,11 @@ botbuilder-stdlib@4.19.3-internal:
   version "4.19.3-internal"
   resolved "https://registry.yarnpkg.com/botbuilder-stdlib/-/botbuilder-stdlib-4.19.3-internal.tgz#781a7671f4e07ae0efdf84035ca93c7973a2876d"
   integrity sha512-iaJr+EwOhQDO2gYYijVXiH4ztJSXMtmJcezhoCS0f+i4yy49flSVdJlBw3bYknJFsZcRub8842ESPHwDiu6cZw==
+
+botbuilder-stdlib@4.20.0-internal:
+  version "4.20.0-internal"
+  resolved "https://registry.yarnpkg.com/botbuilder-stdlib/-/botbuilder-stdlib-4.20.0-internal.tgz#2c145c0c988308398a4fe7a3e14b06b2e2d030d5"
+  integrity sha512-WtMQkl1PHWX+GkdqufDC4nv+JZTUitvjLpdh56piQaakxozK6FQqQzJFdMvUdOMgfJ/mQMPmtojLhfbQOKYvfA==
 
 botbuilder@^4.19.0, botbuilder@^4.19.3:
   version "4.19.3"
@@ -1021,10 +1155,35 @@ botframework-connector@4.19.3:
     rsa-pem-from-mod-exp "^0.8.4"
     zod "~1.11.17"
 
+botframework-connector@4.20.0:
+  version "4.20.0"
+  resolved "https://registry.yarnpkg.com/botframework-connector/-/botframework-connector-4.20.0.tgz#0b568948bcce62b6dc77dc4ad2beec195a6c9699"
+  integrity sha512-3mP67NHOGdLeODxuXNchK9gzzTafzLdBGZDSWkJDRvIPORbfoxvA/kXsWU2USwMXBnu/M5YeDZn/eUPjDu1nvw==
+  dependencies:
+    "@azure/identity" "^2.0.4"
+    "@azure/ms-rest-js" "^2.6.1"
+    adal-node "0.2.3"
+    axios "^0.25.0"
+    base64url "^3.0.0"
+    botbuilder-stdlib "4.20.0-internal"
+    botframework-schema "4.20.0"
+    cross-fetch "^3.0.5"
+    jsonwebtoken "^9.0.0"
+    rsa-pem-from-mod-exp "^0.8.4"
+    zod "~1.11.17"
+
 botframework-schema@4.19.3:
   version "4.19.3"
   resolved "https://registry.yarnpkg.com/botframework-schema/-/botframework-schema-4.19.3.tgz#4f3992f09d468299f8bd6263a01a1bbaf3cd8d01"
   integrity sha512-MjAJe4Y2nYsyDIiVeA4YLKbzzZTGesdyV7paI4ojbVS9vWR3i8eXQWKaCYcXUN3FC4+BCv8K/P5pTg99w0Y6Ag==
+  dependencies:
+    uuid "^8.3.2"
+    zod "~1.11.17"
+
+botframework-schema@4.20.0:
+  version "4.20.0"
+  resolved "https://registry.yarnpkg.com/botframework-schema/-/botframework-schema-4.20.0.tgz#cf691599aa23cb5e7b1aa6e7d8bda87c0e1d9ac1"
+  integrity sha512-Tda488691XFlkBKdMLdlGWRI8IebLprxqQf57LpuRQHqK2ttbvmfwjFiW5V3VcTBBz1SVzMhwJBAWVDG+MexLA==
   dependencies:
     uuid "^8.3.2"
     zod "~1.11.17"
@@ -2051,6 +2210,15 @@ form-data@^2.5.0:
     combined-stream "^1.0.6"
     mime-types "^2.1.12"
 
+form-data@^3.0.0:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/form-data/-/form-data-3.0.1.tgz#ebd53791b78356a99af9a300d4282c4d5eb9755f"
+  integrity sha512-RHkBKtLWUVwd7SqRIvCZMEvAMoGUp0XU+seQiZejj0COz3RI3hWP4sCv3gZWWLjJTd7rGwcsF5eKZGii0r/hbg==
+  dependencies:
+    asynckit "^0.4.0"
+    combined-stream "^1.0.8"
+    mime-types "^2.1.12"
+
 form-data@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/form-data/-/form-data-4.0.0.tgz#93919daeaf361ee529584b9b31664dc12c9fa452"
@@ -2165,6 +2333,11 @@ get-stream@^4.0.0:
   integrity sha512-GMat4EJ5161kIy2HevLlr4luNjBgvmj413KaQA7jt4V8B4RDsfpHk7WQ9GVqfYyyx8OS/L66Kox+rJRNklLK7w==
   dependencies:
     pump "^3.0.0"
+
+get-stream@^6.0.0:
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/get-stream/-/get-stream-6.0.1.tgz#a262d8eef67aced57c2852ad6167526a43cbf7b7"
+  integrity sha512-ts6Wi+2j3jQjqi70w5AlN8DFnkSwC+MqmxEzdEALB2qXZYV3X/b1CTfgPLGJNMeAWxdPfU8FO1ms3NUfaHCPYg==
 
 get-symbol-description@^1.0.0:
   version "1.0.0"
@@ -3792,6 +3965,13 @@ p-map@^3.0.0:
   dependencies:
     aggregate-error "^3.0.0"
 
+p-map@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/p-map/-/p-map-4.0.0.tgz#bb2f95a5eda2ec168ec9274e06a747c3e2904d2b"
+  integrity sha512-/bjOqmgETBYB5BoEeGVea8dmvHb2m9GLy1E9W43yeyfP6QQCZGFNa+XRceJEuDB6zqr+gKpIAmlLebMpykw/MQ==
+  dependencies:
+    aggregate-error "^3.0.0"
+
 p-try@^2.0.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/p-try/-/p-try-2.2.0.tgz#cb2868540e313d61de58fafbe35ce9004d5540e6"
@@ -3933,18 +4113,23 @@ process-on-spawn@^1.0.0:
   dependencies:
     fromentries "^1.2.0"
 
-promptrix@0.1.4, promptrix@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/promptrix/-/promptrix-0.1.4.tgz#b000500ff13d43453cc96149f13008e66a9ee15e"
-  integrity sha512-w28n20B4WXfyq37Z+Spl7cWJ7yuuzAgBoTevwRpA3g+akcsWhwHjzk3IR6C1c0OfBXifu+Fi4Wqrlz/jBk8MQg==
+process@^0.11.10:
+  version "0.11.10"
+  resolved "https://registry.yarnpkg.com/process/-/process-0.11.10.tgz#7332300e840161bda3e69a1d1d91a7d4bc16f182"
+  integrity sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==
+
+promptrix@0.2.0, promptrix@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/promptrix/-/promptrix-0.2.0.tgz#4dcbdda96f9c1d54584dc68e3d3c44afb4086d1f"
+  integrity sha512-ZMEoqqDU953ov/eedZ0g+6qU1mso3dNConHlHuC87ls82YmBSPQihVROqx+P7v8lhWPSIkAxXpb2QgI5t/tVpQ==
   dependencies:
     gpt-3-encoder "1.1.4"
     yaml "^1.10.0"
 
-promptrix@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/promptrix/-/promptrix-0.2.0.tgz#4dcbdda96f9c1d54584dc68e3d3c44afb4086d1f"
-  integrity sha512-ZMEoqqDU953ov/eedZ0g+6qU1mso3dNConHlHuC87ls82YmBSPQihVROqx+P7v8lhWPSIkAxXpb2QgI5t/tVpQ==
+promptrix@^0.1.4:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/promptrix/-/promptrix-0.1.4.tgz#b000500ff13d43453cc96149f13008e66a9ee15e"
+  integrity sha512-w28n20B4WXfyq37Z+Spl7cWJ7yuuzAgBoTevwRpA3g+akcsWhwHjzk3IR6C1c0OfBXifu+Fi4Wqrlz/jBk8MQg==
   dependencies:
     gpt-3-encoder "1.1.4"
     yaml "^1.10.0"
@@ -4613,6 +4798,11 @@ stream-transform@^2.1.3:
   dependencies:
     mixme "^0.5.1"
 
+strict-event-emitter-types@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/strict-event-emitter-types/-/strict-event-emitter-types-2.0.0.tgz#05e15549cb4da1694478a53543e4e2f4abcf277f"
+  integrity sha512-Nk/brWYpD85WlOgzw5h173aci0Teyv8YdIAEtV+N88nDB0dLlazZyJMIsN6eo1/AR61l+p6CJTG1JIyFaoNEEA==
+
 "string-width@^1.0.2 || 2", string-width@^2.0.0, string-width@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-2.1.1.tgz#ab93f27a8dc13d28cac815c462143a6d9012ae9e"
@@ -4980,7 +5170,7 @@ tsutils@^2.29.0:
   dependencies:
     tslib "^1.8.1"
 
-tunnel@0.0.6:
+tunnel@0.0.6, tunnel@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/tunnel/-/tunnel-0.0.6.tgz#72f1314b34a5b192db012324df2cc587ca47f92c"
   integrity sha512-1h/Lnq9yajKY2PEbBadPXj3VxsDDu844OnaAo52UVmIzIvwwtBPIuNvkjuzBlTWpfJyUbG3ez0KSBibQkj4ojg==
