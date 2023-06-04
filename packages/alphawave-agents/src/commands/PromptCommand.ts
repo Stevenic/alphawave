@@ -1,8 +1,7 @@
 import { PromptMemory, PromptFunctions, Tokenizer } from "promptrix";
-import { AlphaWave, AlphaWaveOptions } from "alphawave";
+import { AlphaWave, AlphaWaveOptions, MemoryFork } from "alphawave";
 import { SchemaBasedCommand, CommandSchema } from "../SchemaBasedCommand";
 import { TaskResponse } from "../types";
-import { MemoryFork } from "../MemoryFork";
 
 export interface PromptCommandOptions extends AlphaWaveOptions {
     schema: CommandSchema;

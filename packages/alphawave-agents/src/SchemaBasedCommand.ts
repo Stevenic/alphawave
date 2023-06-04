@@ -1,5 +1,5 @@
 import { PromptFunctions, PromptMemory, Tokenizer  } from "promptrix";
-import { ResponseValidation } from "alphawave";
+import { Validation } from "alphawave";
 import { Validator, Schema  } from "jsonschema";
 import { Command } from "./types";
 
@@ -28,7 +28,7 @@ export abstract class SchemaBasedCommand<TInput = Record<string, any>> implement
     public get inputs(): string | undefined {
         if (this._schema.properties) {
             // Return a sketch of the inputs
-            const properties = this._schema.properties;
+            const properties = this._schema.properties ?? {};
             const keys = Object.keys(properties);
             const inputs = keys.map(key => {
                 const property = properties[key];
@@ -56,7 +56,7 @@ export abstract class SchemaBasedCommand<TInput = Record<string, any>> implement
 
     public abstract execute(input: TInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<any>;
 
-    public validate(input: TInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<ResponseValidation<TInput>> {
+    public validate(input: TInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<Validation<TInput>> {
         // First clean the input
         const cleaned = this.cleanInput(input);
 
@@ -65,9 +65,9 @@ export abstract class SchemaBasedCommand<TInput = Record<string, any>> implement
         const result = validator.validate(cleaned, this._schema);
         if (result.valid) {
             return Promise.resolve({
-                type: 'ResponseValidation',
+                type: 'Validation',
                 valid: true,
-                content: cleaned
+                value: cleaned
             });
         } else {
             const errors = result.errors.map(e => {
@@ -76,7 +76,7 @@ export abstract class SchemaBasedCommand<TInput = Record<string, any>> implement
             });
             const message = errors.join("\n");
             return Promise.resolve({
-                type: 'ResponseValidation',
+                type: 'Validation',
                 valid: false,
                 feedback: `The command.input has errors:\n${message}\n\nTry again.`
             });

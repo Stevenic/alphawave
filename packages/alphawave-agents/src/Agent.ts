@@ -1,57 +1,120 @@
-import { FunctionRegistry, GPT3Tokenizer, PromptFunctions, PromptMemory, PromptSection, Tokenizer, VolatileMemory } from "promptrix";
-import { AlphaWave, JSONResponseValidator, PromptCompletionClient, PromptCompletionOptions, PromptResponse, ResponseValidation, PromptResponseValidator } from "alphawave";
-import { TaskResponse, AgentThoughts, Command } from "./types";
-import { Schema } from "jsonschema";
+import {
+    ConversationHistory,
+    FunctionRegistry,
+    GPT3Tokenizer,
+    GroupSection,
+    Message,
+    Prompt,
+    PromptFunctions,
+    PromptMemory,
+    PromptSection,
+    TextSection,
+    Tokenizer,
+    Utilities,
+    VolatileMemory
+} from "promptrix";
+import { AlphaWave, PromptCompletionClient, PromptCompletionOptions, PromptResponse } from "alphawave";
+import { TaskResponse, AgentThought, Command } from "./types";
+import { CommandSchema, SchemaBasedCommand } from "./SchemaBasedCommand";
+import { AgentCommandSection } from "./AgentCommandSection";
+import { AgentCommandValidator } from "./AgentCommandValidator";
+import { v4 as uuidv4 } from "uuid";
 
 export interface AgentOptions  {
     client: PromptCompletionClient;
-    prompt: PromptSection;
+    prompt: string|string[]|PromptSection;
     prompt_options: PromptCompletionOptions;
+    agent_variable?: string;
     functions?: PromptFunctions;
     history_variable?: string;
+    initial_thought?: AgentThought;
     input_variable?: string;
+    logRepairs?: boolean;
     max_history_messages?: number;
     max_repair_attempts?: number;
     max_steps?: number;
     memory?: PromptMemory;
+    retry_invalid_responses?: boolean;
     step_delay?: number;
     tokenizer?: Tokenizer;
 }
 
 export interface ConfiguredAgentOptions {
+    agent_variable: string;
     client: PromptCompletionClient;
-    history_variable: string;
-    input_variable: string;
     functions: PromptFunctions;
+    history_variable: string;
+    initial_thought: AgentThought | undefined;
+    input_variable: string;
+    logRepairs: boolean;
     max_history_messages: number;
     max_repair_attempts: number;
     max_steps: number;
     memory: PromptMemory;
-    prompt: PromptSection;
+    prompt: string|string[]|PromptSection;
     prompt_options: PromptCompletionOptions;
+    retry_invalid_responses: boolean;
     step_delay: number;
     tokenizer: Tokenizer;
 }
 
-/*
-export class Agent implements PromptResponseValidator {
+export interface AgentCommandInput {
+    agentId: string;
+    input: string;
+}
+
+export interface AgentState {
+    totalSteps: number;
+    context?: string;
+    child?: {
+        agentId: string;
+        title: string;
+    };
+}
+
+export class Agent extends SchemaBasedCommand<AgentCommandInput> {
     private readonly _commands: Map<string, Command> = new Map();
+    private readonly _options: ConfiguredAgentOptions;
 
-    public readonly options: ConfiguredAgentOptions;
-
-    public constructor(options: AgentOptions) {
-        this.options = Object.assign({
+    public constructor(options: AgentOptions, title?: string, description?: string) {
+        super(AgentCommandSchema, title, description);
+        this._options = Object.assign({
+            agent_variable: 'agent',
             functions: new FunctionRegistry(),
             history_variable: 'history',
             input_variable: 'input',
+            logRepairs: false,
             max_history_messages: 10,
             max_repair_attempts: 3,
             max_steps: 5,
             memory: new VolatileMemory(),
+            retry_invalid_responses: false,
             step_delay: 0,
-            tokenizer: new GPT3Tokenizer()
+            tokenizer: new GPT3Tokenizer(),
         }, options) as ConfiguredAgentOptions;
     }
+
+    public get client(): PromptCompletionClient {
+        return this._options.client;
+    }
+
+    public get functions(): PromptFunctions {
+        return this._options.functions;
+    }
+
+    public get memory(): PromptMemory {
+        return this._options.memory;
+    }
+
+    public get options(): ConfiguredAgentOptions {
+        return this._options;
+    }
+
+    public get tokenizer(): Tokenizer {
+        return this._options.tokenizer;
+    }
+
+    // Command management
 
     public addCommand(command: Command): this {
         if (this._commands.has(command.title)) {
@@ -69,10 +132,46 @@ export class Agent implements PromptResponseValidator {
         return this._commands.has(title);
     }
 
-    public async completeTask(input?: string): Promise<TaskResponse> {
-        // Start main task loop
+    // Task execution
+
+    public async completeTask(input?: string, agentId?: string): Promise<TaskResponse> {
+        // Initialize the input to the next step
+        let stepInput = input ?? this.memory.get(this.options.input_variable);
+
+        // Dispatch to child agent if needed
         let step = 0;
+        const state = this.getAgentState(agentId);
+        if (state.child) {
+            const childAgent = this.getCommand(state.child.title) as Agent;
+            const response = await childAgent.completeTask(input, state.child.agentId);
+            if (response.status !== 'success') {
+                return response;
+            }
+
+            // Delete child and save state
+            delete state.child;
+            this.setAgentState(state, agentId);
+
+            // Use agents response as input to the next step
+            // We don't know how many steps the child agent took, so we'll just assume it took one
+            stepInput = response.message;
+            step = 1;
+        }
+
+        // Start main task loop
         while (step < this.options.max_steps) {
+            // Wait for step delay
+            if (step > 0 && this.options.step_delay > 0) {
+                await new Promise(resolve => setTimeout(resolve, this.options.step_delay));
+            }
+
+            // Execute next step
+            const result = await this.executeNextStep(stepInput, agentId);
+            if (typeof result === 'string') {
+                stepInput = result;
+            } else {
+                return result;
+            }
         }
 
         // Return too many steps
@@ -82,39 +181,193 @@ export class Agent implements PromptResponseValidator {
             message: "The current task has taken too many steps."
         };
     }
+
+    // Agent as Commands
+
+    public execute(input: AgentCommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<TaskResponse> {
+        // Initialize the agents state
+        const agentId = input.agentId;
+        const state = this.getAgentState(agentId);
+        state.context = input.input;
+        this.setAgentState(state, agentId);
+
+        // Start the task
+        return this.completeTask(undefined, agentId);
+    }
+
+    public getAgentState(agentId?: string): AgentState {
+        const key = agentId ? `${this.options.agent_variable}.${agentId}` : this.options.agent_variable;
+        const state = this.memory.get(key) ?? {};
+        if (state.totalSteps === undefined) {
+            state.totalSteps = 0;
+        }
+        return state;
+    }
+
+    public setAgentState(state: AgentState, agentId?: string): void {
+        const key = agentId ? `${this.options.agent_variable}.${agentId}` : this.options.agent_variable;
+        this.memory.set(key, state);
+    }
+
+    public getAgentHistoryVariable(agentId?: string): string {
+        return agentId ? `${this.options.history_variable}.${agentId}` : this.options.history_variable;
+    }
+
+    private async executeNextStep(input?: string, agentId?: string): Promise<TaskResponse|string> {
+        try {
+            const state = this.getAgentState(agentId);
+
+            // Create agents prompt section
+            let agent_prompt: PromptSection;
+            if (typeof this._options.prompt === 'object') {
+                agent_prompt = this._options.prompt as PromptSection;
+            } else if (Array.isArray(this._options.prompt)) {
+                agent_prompt = new TextSection(this._options.prompt.join('\n'), 'system');
+            } else {
+                agent_prompt = new TextSection(this._options.prompt, 'system');
+            }
+
+            // Create prompt
+            const history_variable = this.getAgentHistoryVariable(agentId);
+            const system_msg = new GroupSection([agent_prompt], 'user');
+            if (state.context) {
+                system_msg.sections.push(new TextSection(`context:\n${state.context}`, 'system'));
+            }
+            system_msg.sections.push(new AgentCommandSection(this._commands));
+            const prompt = new Prompt([
+                system_msg,
+                new ConversationHistory(history_variable)
+            ]);
+            if (input) {
+                prompt.sections.push(new TextSection(input, 'user'));
+            }
+
+            // Add initial thought to history
+            if (state.totalSteps == 0 && this._options.initial_thought) {
+                const history: Message[] = this.memory.get(history_variable) ?? [];
+                history.push({ role: 'assistant', content: JSON.stringify(this._options.initial_thought) });
+                this.memory.set(history_variable, history);
+            }
+
+            // Create command validator
+            const validator = new AgentCommandValidator(this._commands);
+
+            // Create a wave for the prompt
+            const wave = new AlphaWave({
+                client: this._options.client,
+                prompt: prompt,
+                prompt_options: this._options.prompt_options,
+                functions: this._options.functions,
+                history_variable: history_variable,
+                input_variable: this._options.input_variable,
+                max_history_messages: this._options.max_history_messages,
+                max_repair_attempts: this._options.max_repair_attempts,
+                memory: this._options.memory,
+                tokenizer: this._options.tokenizer,
+                logRepairs: this._options.logRepairs,
+                validator: validator
+            });
+
+            // Complete the prompt
+            let response: PromptResponse;
+            let maxAttempts = this._options.retry_invalid_responses ? 2 : 1;
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                response = await wave.completePrompt();
+                if (response.status != 'invalid_response') {
+                    break;
+                }
+            }
+
+            // Ensure response succeeded
+            if (response!.status !== 'success') {
+                return {
+                    type: "TaskResponse",
+                    status: response!.status,
+                    message: response!.message as string
+                };
+            }
+
+            // Get agents thought and execute command
+            const message: Message<AgentThought> = response!.message as Message<AgentThought>;
+            const thought = message.content;
+            const result = await this.executeCommand(state, thought);
+
+            // Check for task result and error
+            const taskResponse: TaskResponse|undefined = typeof result === 'object' && result.type == 'TaskResponse' ? result : undefined;
+            if (taskResponse) {
+                switch (taskResponse.status) {
+                    case 'error':
+                    case 'invalid_response':
+                    case 'rate_limited':
+                    case 'too_many_steps':
+                    case 'too_long':
+                        return taskResponse;
+                }
+            }
+
+            // Update history
+            const history: Message[] = this.memory.get(history_variable) ?? [];
+            if (input) {
+                history.push({ role: 'user', content: input });
+            }
+            history.push({ role: 'assistant', content: JSON.stringify(thought) });
+            this.memory.set(history_variable, history);
+
+            // Save the agents state
+            state.totalSteps += 1;
+            this.setAgentState(state, agentId);
+
+            // Return result
+            return taskResponse ? taskResponse : Utilities.toString(this.tokenizer, result);
+        } catch (err: unknown) {
+            return {
+                type: "TaskResponse",
+                status: "error",
+                message: (err as any).toString()
+            };
+        }
+    }
+
+    private async executeCommand(state: AgentState, thought: AgentThought): Promise<any> {
+        // Get command
+        const command = this._commands.get(thought.command.name) as Command;
+        const input = thought.command.input ?? {};
+        if (command instanceof Agent) {
+            // Pass control to child agent
+            const agentId = uuidv4();
+            const childAgent = command as Agent;
+            const response = await childAgent.execute(input['input'], this.memory, this.functions, this.tokenizer);
+            switch (response.status) {
+                case 'success':
+                    // Just return the response message since agent completed without additional input
+                    return response.message;
+                case 'input_needed':
+                    // Remember that we're talking to the agent
+                    state.child = {
+                        title: thought.command.name,
+                        agentId: agentId
+                    };
+                    return response;
+                default:
+                    // Return the response since the agent failed
+                    return response;
+            }
+        } else {
+            // Execute command and return result
+            return await command.execute(input, this.memory, this.functions, this.tokenizer);
+        }
+    }
 }
 
-const agentThoughtsSchema: Schema = {
+const AgentCommandSchema: CommandSchema = {
     type: "object",
+    title: "Agent",
+    description: "an agent that can perform a task",
     properties: {
-        thoughts: {
-            type: "object",
-            properties: {
-                thought: {
-                    type: "string"
-                },
-                reasoning: {
-                    type: "string"
-                },
-                plan: {
-                    type: "string"
-                }
-            },
-            required: ["thought", "reasoning", "plan"]
-        },
-        command: {
-            type: "object",
-            properties: {
-                name: {
-                    type: "string"
-                },
-                input: {
-                    type: "object"
-                }
-            },
-            required: ["name", "input"]
+        input: {
+            type: "string",
+            description: "input for command",
         }
     },
-    required: ["thoughts", "command"]
+    required: ["input"]
 };
-*/

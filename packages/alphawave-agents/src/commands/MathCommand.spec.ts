@@ -34,7 +34,7 @@ describe("MathCommand", () => {
             };
             const result = await command.validate(input, memory, functions, tokenizer);
             assert.equal(result.valid, true);
-            assert.deepEqual(result.content, input);
+            assert.deepEqual(result.value, input);
         });
 
         it("should fail an invalid input", async () => {
