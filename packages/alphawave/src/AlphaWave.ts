@@ -1,4 +1,4 @@
-import { FunctionRegistry, GPT3Tokenizer, Message, PromptFunctions, PromptMemory, PromptSection, Tokenizer, VolatileMemory } from "promptrix";
+import { ConversationHistory, FunctionRegistry, GPT3Tokenizer, Message, Prompt, PromptFunctions, PromptMemory, PromptSection, Tokenizer, VolatileMemory } from "promptrix";
 import { StrictEventEmitter } from "strict-event-emitter-types";
 import { EventEmitter } from "events";
 import { PromptCompletionClient, PromptCompletionOptions, PromptResponse, Validation, PromptResponseValidator } from "./types";
@@ -111,10 +111,9 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
                 return response;
             }
 
-            // Fork the conversation history and update the fork with the invalid response.
+            // Fork the conversation history and the users input to the repair history
             const fork = new MemoryFork(memory);
-            this.addInputToHistory(fork, history_variable, input!);
-            this.addResponseToHistory(fork, history_variable, response.message);
+            this.addInputToHistory(fork, `${history_variable}.repair`, input!);
 
             // Log repair attempts
             if (this.options.logRepairs) {
@@ -124,7 +123,7 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
 
             // Attempt to repair response
             this.emit('beforeRepair', fork, functions, tokenizer, response, max_repair_attempts, validation);
-            const repair = await this.repairResponse(fork, functions, tokenizer, validation, max_repair_attempts);
+            const repair = await this.repairResponse(fork, functions, tokenizer, response, validation, max_repair_attempts);
             this.emit('afterRepair', fork, functions, tokenizer, response, max_repair_attempts, validation);
 
             // Log repair success
@@ -176,7 +175,7 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
         }
     }
 
-    private async repairResponse(fork: MemoryFork, functions: PromptFunctions, tokenizer: Tokenizer, validation: Validation, remaining_attempts: number): Promise<PromptResponse> {
+    private async repairResponse(fork: MemoryFork, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse, validation: Validation, remaining_attempts: number): Promise<PromptResponse> {
         const { client, prompt, prompt_options, input_variable, validator } = this.options;
 
         // Are we out of attempts?
@@ -188,8 +187,15 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
             };
         }
 
-        // Update the input with the feedback message
-        fork.set(input_variable, feedback);
+        // Add response and feedback to repair history
+        this.addResponseToHistory(fork, `${this.options.history_variable}.repair`, response.message as Message);
+        this.addInputToHistory(fork, `${this.options.history_variable}.repair`, feedback);
+
+        // Append repair history to prompt
+        const repairPrompt = new Prompt([
+            prompt,
+            new ConversationHistory(`${this.options.history_variable}.repair`)
+        ]);
 
         // Log the repair
         if (this.options.logRepairs) {
@@ -198,33 +204,33 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
 
         // Ask client to complete prompt
         this.emit('beforePrompt', fork, functions, tokenizer, prompt, prompt_options);
-        const response = await client.completePrompt(fork, functions, tokenizer, prompt, prompt_options);
-        this.emit('afterPrompt', fork, functions, tokenizer, prompt, prompt_options, response);
-        if (response.status !== 'success') {
-            return response;
+        const repairResponse = await client.completePrompt(fork, functions, tokenizer, repairPrompt, prompt_options);
+        this.emit('afterPrompt', fork, functions, tokenizer, prompt, prompt_options, repairResponse);
+        if (repairResponse.status !== 'success') {
+            return repairResponse;
         }
 
         // Ensure response is a message
-        if (typeof response.message !== 'object') {
-            response.message = { role: 'assistant', content: response.message ?? '' };
+        if (typeof repairResponse.message !== 'object') {
+            repairResponse.message = { role: 'assistant', content: repairResponse.message ?? '' };
         }
 
         // Validate response
-        this.emit('beforeValidation', fork, functions, tokenizer, response, remaining_attempts);
-        validation = await validator.validateResponse(fork, functions, tokenizer, response, remaining_attempts);
-        this.emit('afterValidation', fork, functions, tokenizer, response, remaining_attempts, validation);
+        this.emit('beforeValidation', fork, functions, tokenizer, repairResponse, remaining_attempts);
+        validation = await validator.validateResponse(fork, functions, tokenizer, repairResponse, remaining_attempts);
+        this.emit('afterValidation', fork, functions, tokenizer, repairResponse, remaining_attempts, validation);
         if (validation.valid) {
             // Update content
             if (validation.hasOwnProperty('value')) {
-                response.message.content = validation.value;
+                repairResponse.message.content = validation.value;
             }
 
-            return response;
+            return repairResponse;
         }
 
         // Try next attempt
         remaining_attempts--;
-        this.emit('nextRepair', fork, functions, tokenizer, response, remaining_attempts, validation);
-        return await this.repairResponse(fork, functions, tokenizer, validation, remaining_attempts);
+        this.emit('nextRepair', fork, functions, tokenizer, repairResponse, remaining_attempts, validation);
+        return await this.repairResponse(fork, functions, tokenizer, repairResponse, validation, remaining_attempts);
     }
 }

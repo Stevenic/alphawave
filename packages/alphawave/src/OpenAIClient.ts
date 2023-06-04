@@ -70,7 +70,7 @@ export class OpenAIClient implements PromptCompletionClient {
             const response = await this.createCompletion(request);
             if (this.options.logRequests) {
                 console.log(Colorize.title('RESPONSE:'));
-                console.log(Colorize.value('statuse', response.status));
+                console.log(Colorize.value('status', response.status));
                 console.log(Colorize.value('duration', Date.now() - startTime, 'ms'));
                 console.log(Colorize.output(response.data));
             }
@@ -107,7 +107,7 @@ export class OpenAIClient implements PromptCompletionClient {
             const response = await this.createChatCompletion(request);
             if (this.options.logRequests) {
                 console.log(Colorize.title('CHAT RESPONSE:'));
-                console.log(Colorize.value('statuse', response.status));
+                console.log(Colorize.value('status', response.status));
                 console.log(Colorize.value('duration', Date.now() - startTime, 'ms'));
                 console.log(Colorize.output(response.data));
             }

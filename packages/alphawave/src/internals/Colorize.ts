@@ -43,7 +43,7 @@ export class Colorize {
     }
 
     public static value(field: string, value: any, units: string = ''): string {
-        return `${field}: ${Colorize.output(value, '"')}}`;
+        return `${field}: ${Colorize.output(value, '"', units)})}`;
     }
 
     public static warning(warning: string): string {
