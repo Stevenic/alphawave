@@ -236,7 +236,7 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
             system_msg.sections.push(new AgentCommandSection(this._commands));
             const prompt = new Prompt([
                 system_msg,
-                new ConversationHistory(history_variable)
+                new ConversationHistory(history_variable, -1, true)
             ]);
             if (input) {
                 prompt.sections.push(new TextSection(input, 'user'));
