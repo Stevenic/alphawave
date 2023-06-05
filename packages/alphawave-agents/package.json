@@ -28,6 +28,7 @@
         "alphawave": "0.4.0",
         "jsonschema": "1.4.1",
         "promptrix": "^0.2.0",
+        "strict-event-emitter-types": "^2.0.0",
         "uuid": "^9.0.0"
     },
     "resolutions": {},

@@ -14,11 +14,13 @@ import {
     VolatileMemory
 } from "promptrix";
 import { AlphaWave, PromptCompletionClient, PromptCompletionOptions, PromptResponse } from "alphawave";
+import { StrictEventEmitter } from "strict-event-emitter-types";
+import { EventEmitter } from "events";
+import { v4 as uuidv4 } from "uuid";
 import { TaskResponse, AgentThought, Command } from "./types";
 import { CommandSchema, SchemaBasedCommand } from "./SchemaBasedCommand";
 import { AgentCommandSection } from "./AgentCommandSection";
 import { AgentCommandValidator } from "./AgentCommandValidator";
-import { v4 as uuidv4 } from "uuid";
 
 export interface AgentOptions  {
     client: PromptCompletionClient;
@@ -72,9 +74,17 @@ export interface AgentState {
     };
 }
 
+
+export interface AgentEvents {
+    newThought: (thought: AgentThought) => void;
+}
+
+export type AgentEmitter = StrictEventEmitter<EventEmitter, AgentEvents>;
+
 export class Agent extends SchemaBasedCommand<AgentCommandInput> {
     private readonly _commands: Map<string, Command> = new Map();
     private readonly _options: ConfiguredAgentOptions;
+    private readonly _events: AgentEmitter = new EventEmitter() as AgentEmitter;
 
     public constructor(options: AgentOptions, title?: string, description?: string) {
         super(AgentCommandSchema, title, description);
@@ -96,6 +106,10 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
 
     public get client(): PromptCompletionClient {
         return this._options.client;
+    }
+
+    public get events(): AgentEmitter {
+        return this._events;
     }
 
     public get functions(): PromptFunctions {
@@ -234,6 +248,7 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
                 system_msg.sections.push(new TextSection(`context:\n${state.context}`, 'system'));
             }
             system_msg.sections.push(new AgentCommandSection(this._commands));
+            system_msg.sections.push(PromptInstructionSection);
             const prompt = new Prompt([
                 system_msg,
                 new ConversationHistory(history_variable, -1, true)
@@ -290,6 +305,7 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
             // Get agents thought and execute command
             const message: Message<AgentThought> = response!.message as Message<AgentThought>;
             const thought = message.content;
+            this._events.emit('newThought', thought);
             const result = await this.executeCommand(state, thought);
 
             // Check for task result and error
@@ -371,3 +387,10 @@ const AgentCommandSchema: CommandSchema = {
     },
     required: ["input"]
 };
+
+const PromptInstructionSection = new TextSection([
+    `Base your plan on the available commands.`,
+    `You should only respond in JSON format as described below`,
+    `Response Format:`,
+    `{"thoughts":{"thought":"<your current thought>","reasoning":"<self reflect on why you made this decision>","plan":"- short bulleted\n- list that conveys\n- long-term plan"},"command":{"name":"<command name>","input":{"<name>":"<value>"}}}`
+].join('\n'), 'system');
