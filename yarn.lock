@@ -686,6 +686,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/uuid@9.0.1":
+  version "9.0.1"
+  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-9.0.1.tgz#98586dc36aee8dacc98cc396dbca8d0429647aa6"
+  integrity sha512-rFT3ak0/2trgvp4yYZo5iKFEPsET7vKydKF+VRCxlQ9bpheehyAJH89dAkaLEq/j/RZXJIqcgsmPJKUP1Z28HA==
+
 "@types/ws@^6.0.3":
   version "6.0.4"
   resolved "https://registry.yarnpkg.com/@types/ws/-/ws-6.0.4.tgz#7797707c8acce8f76d8c34b370d4645b70421ff1"
@@ -4126,14 +4131,6 @@ promptrix@0.2.0, promptrix@^0.2.0:
     gpt-3-encoder "1.1.4"
     yaml "^1.10.0"
 
-promptrix@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/promptrix/-/promptrix-0.1.4.tgz#b000500ff13d43453cc96149f13008e66a9ee15e"
-  integrity sha512-w28n20B4WXfyq37Z+Spl7cWJ7yuuzAgBoTevwRpA3g+akcsWhwHjzk3IR6C1c0OfBXifu+Fi4Wqrlz/jBk8MQg==
-  dependencies:
-    gpt-3-encoder "1.1.4"
-    yaml "^1.10.0"
-
 proxy-from-env@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/proxy-from-env/-/proxy-from-env-1.1.0.tgz#e102f16ca355424865755d2c9e8ea4f24d58c3e2"
@@ -5321,6 +5318,11 @@ uuid@^8.3.0, uuid@^8.3.2:
   version "8.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
+
+uuid@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.0.tgz#592f550650024a38ceb0c562f2f6aa435761efb5"
+  integrity sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==
 
 v8-compile-cache-lib@^3.0.1:
   version "3.0.1"
