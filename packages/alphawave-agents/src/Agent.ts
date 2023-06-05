@@ -8,6 +8,7 @@ import {
     PromptFunctions,
     PromptMemory,
     PromptSection,
+    TemplateSection,
     TextSection,
     Tokenizer,
     Utilities,
@@ -186,6 +187,8 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
             } else {
                 return result;
             }
+
+            step++;
         }
 
         // Return too many steps
@@ -233,28 +236,31 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
 
             // Create agents prompt section
             let agent_prompt: PromptSection;
-            if (typeof this._options.prompt === 'object') {
+            if (Array.isArray(this._options.prompt)) {
+                agent_prompt = new TemplateSection(this._options.prompt.join('\n'), 'system');
+            } else if (typeof this._options.prompt === 'object') {
                 agent_prompt = this._options.prompt as PromptSection;
-            } else if (Array.isArray(this._options.prompt)) {
-                agent_prompt = new TextSection(this._options.prompt.join('\n'), 'system');
             } else {
-                agent_prompt = new TextSection(this._options.prompt, 'system');
+                agent_prompt = new TemplateSection(this._options.prompt, 'system');
             }
 
             // Create prompt
             const history_variable = this.getAgentHistoryVariable(agentId);
-            const system_msg = new GroupSection([agent_prompt], 'user');
+            const sections: PromptSection[] = [agent_prompt];
             if (state.context) {
-                system_msg.sections.push(new TextSection(`context:\n${state.context}`, 'system'));
+                sections.push(new TextSection(`context:\n${state.context}`, 'system'));
             }
-            system_msg.sections.push(new AgentCommandSection(this._commands));
-            system_msg.sections.push(PromptInstructionSection);
+            sections.push(new AgentCommandSection(this._commands));
+            sections.push(PromptInstructionSection);
             const prompt = new Prompt([
-                system_msg,
-                new ConversationHistory(history_variable, -1, true)
+                new GroupSection(sections, 'system'),
+                new ConversationHistory(history_variable, 1.0, true)
             ]);
             if (input) {
-                prompt.sections.push(new TextSection(input, 'user'));
+                prompt.sections.push(new TextSection(input, 'user', -1, true, '\n', 'user: '));
+
+                // Ensure input variable is set otherwise the history will be wrong.
+                this.memory.set(this.options.input_variable, input);
             }
 
             // Add initial thought to history
@@ -321,13 +327,13 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
                 }
             }
 
-            // Update history
-            const history: Message[] = this.memory.get(history_variable) ?? [];
-            if (input) {
-                history.push({ role: 'user', content: input });
-            }
-            history.push({ role: 'assistant', content: JSON.stringify(thought) });
-            this.memory.set(history_variable, history);
+            // // Update history
+            // const history: Message[] = this.memory.get(history_variable) ?? [];
+            // if (input) {
+            //     history.push({ role: 'user', content: input });
+            // }
+            // history.push({ role: 'assistant', content: JSON.stringify(thought) });
+            // this.memory.set(history_variable, history);
 
             // Save the agents state
             state.totalSteps += 1;

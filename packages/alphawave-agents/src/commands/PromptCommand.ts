@@ -1,17 +1,18 @@
-import { PromptMemory, PromptFunctions, Tokenizer } from "promptrix";
+import { PromptMemory, PromptFunctions, Tokenizer, Utilities } from "promptrix";
 import { AlphaWave, AlphaWaveOptions, MemoryFork } from "alphawave";
 import { SchemaBasedCommand, CommandSchema } from "../SchemaBasedCommand";
 import { TaskResponse } from "../types";
 
 export interface PromptCommandOptions extends AlphaWaveOptions {
     schema: CommandSchema;
+    parseResponse?: (response: string, input:Record<string, any>, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer) => Promise<any>;
 }
 
 export class PromptCommand extends SchemaBasedCommand {
     public readonly options: PromptCommandOptions;
 
-    public constructor(options: PromptCommandOptions) {
-        super(options.schema);
+    public constructor(options: PromptCommandOptions, title?: string, description?: string) {
+        super(options.schema, title, description);
         this.options = options;
     }
 
@@ -36,7 +37,8 @@ export class PromptCommand extends SchemaBasedCommand {
         const message = typeof response.message == "object" ? response.message.content : response.message;
         if (response.status === "success") {
             // Return the response
-            return message
+            const parsed = this.options.parseResponse ? await this.options.parseResponse(message, input, memory, functions, tokenizer) : message;
+            return Utilities.toString(tokenizer, parsed);
         } else {
             // Return the error
             return {

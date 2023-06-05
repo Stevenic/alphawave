@@ -3,9 +3,9 @@ const colorizer = require('json-colorizer');
 export class Colorize {
     public static error(error: Error|string): string {
         if (typeof error === 'string') {
-            return `\x1b;1m[31m${error}\x1b[0m`;
+            return `\x1b[31;1m${error}\x1b[0m`;
         } else {
-            return `\x1b;1m[31m${error.message}\x1b[0m`;
+            return `\x1b[31;1m${error.message}\x1b[0m`;
         }
     }
 
@@ -35,7 +35,7 @@ export class Colorize {
     }
 
     public static success(message: string): string {
-        return `\x1b[32m;1m${message}\x1b[0m`;
+        return `\x1b[32;1m${message}\x1b[0m`;
     }
 
     public static title(title: string): string {
@@ -43,7 +43,7 @@ export class Colorize {
     }
 
     public static value(field: string, value: any, units: string = ''): string {
-        return `${field}: ${Colorize.output(value, '"', units)})}`;
+        return `${field}: ${Colorize.output(value, '"', units)}`;
     }
 
     public static warning(warning: string): string {
