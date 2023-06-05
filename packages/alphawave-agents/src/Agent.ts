@@ -210,7 +210,7 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
     }
 
     public getAgentState(agentId?: string): AgentState {
-        const key = agentId ? `${this.options.agent_variable}.${agentId}` : this.options.agent_variable;
+        const key = agentId ? `${this.options.agent_variable}-${agentId}` : this.options.agent_variable;
         const state = this.memory.get(key) ?? {};
         if (state.totalSteps === undefined) {
             state.totalSteps = 0;
@@ -219,12 +219,12 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
     }
 
     public setAgentState(state: AgentState, agentId?: string): void {
-        const key = agentId ? `${this.options.agent_variable}.${agentId}` : this.options.agent_variable;
+        const key = agentId ? `${this.options.agent_variable}-${agentId}` : this.options.agent_variable;
         this.memory.set(key, state);
     }
 
     public getAgentHistoryVariable(agentId?: string): string {
-        return agentId ? `${this.options.history_variable}.${agentId}` : this.options.history_variable;
+        return agentId ? `${this.options.history_variable}-${agentId}` : this.options.history_variable;
     }
 
     private async executeNextStep(input?: string, agentId?: string): Promise<TaskResponse|string> {

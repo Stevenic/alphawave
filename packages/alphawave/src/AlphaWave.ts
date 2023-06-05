@@ -113,7 +113,7 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
 
             // Fork the conversation history and the users input to the repair history
             const fork = new MemoryFork(memory);
-            this.addInputToHistory(fork, `${history_variable}.repair`, input!);
+            this.addInputToHistory(fork, `${history_variable}-repair`, input!);
 
             // Log repair attempts
             if (this.options.logRepairs) {
@@ -188,13 +188,13 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
         }
 
         // Add response and feedback to repair history
-        this.addResponseToHistory(fork, `${this.options.history_variable}.repair`, response.message as Message);
-        this.addInputToHistory(fork, `${this.options.history_variable}.repair`, feedback);
+        this.addResponseToHistory(fork, `${this.options.history_variable}-repair`, response.message as Message);
+        this.addInputToHistory(fork, `${this.options.history_variable}-repair`, feedback);
 
         // Append repair history to prompt
         const repairPrompt = new Prompt([
             prompt,
-            new ConversationHistory(`${this.options.history_variable}.repair`)
+            new ConversationHistory(`${this.options.history_variable}-repair`)
         ]);
 
         // Log the repair

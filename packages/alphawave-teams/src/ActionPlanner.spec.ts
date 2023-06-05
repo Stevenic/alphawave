@@ -284,7 +284,7 @@ describe("ActionPlanner", () => {
                 prompt_options: { completion_type: 'chat', model: 'gpt-3.5-turbo' }
             }).addValidator('planner', planValidator);
             const response = await planner.completePrompt(context as any, state, validatedPrompt, trackHistory);
-            assert.deepEqual(response, validPlan);
+            assert.deepEqual(response, message);
         });
 
         it("should fail a prompt that uses a validator", async () => {
