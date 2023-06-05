@@ -1,7 +1,7 @@
 {
-    "name": "math-agent",
+    "name": "macbeth",
     "version": "1.0.0",
-    "description": "A sample Alpha Wave Agent that's an expert in Math.",
+    "description": "A sample Alpha Wave Agent that can act out any scene from Macbeth.",
     "author": "Steven Ickman",
     "license": "MIT",
     "main": "./lib/index.js",
@@ -18,8 +18,8 @@
         "url": "https://github.com"
     },
     "dependencies": {
-        "alphawave": "~0.5.0",
-        "alphawave-agents": "~0.5.0",
+        "alphawave": "~0.5.1",
+        "alphawave-agents": "~0.5.1",
         "promptrix": "0.3.0",
         "dotenv": "^8.2.0"
     },

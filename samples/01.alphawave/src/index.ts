@@ -55,11 +55,11 @@ async function chat(botMessage: string|undefined) {
             const result = await wave.completePrompt(input);
             switch (result.status) {
                 case 'success':
-                    await chat((result.response as Message).content);
+                    await chat((result.message as Message).content);
                     break;
                 default:
-                    if (result.response) {
-                        console.log(`${result.status}: ${result.response}`);
+                    if (result.message) {
+                        console.log(`${result.status}: ${result.message}`);
                     } else {
                         console.log(`A result status of '${result.status}' was returned.`);
                     }

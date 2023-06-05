@@ -766,29 +766,6 @@ aggregate-error@^3.0.0:
     clean-stack "^2.0.0"
     indent-string "^4.0.0"
 
-alphawave-teams@~0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/alphawave-teams/-/alphawave-teams-0.3.0.tgz#3016d2d958ef4af524235f3c7512f963993a1229"
-  integrity sha512-oro4D9J7xcgDOE2VCqF52hNrpJW70m3rWf+9mwZtHTxZM/JebBP7/PmuDkrXwMKvD6xIeGzH8xj7Omo2fFrbHg==
-  dependencies:
-    "@microsoft/teams-ai" "~0.1.0-preview.2"
-    alphawave "0.3.0"
-    botbuilder "^4.19.3"
-    jsonschema "1.4.1"
-    promptrix "^0.2.0"
-
-alphawave@0.3.0, alphawave@~0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/alphawave/-/alphawave-0.3.0.tgz#04b3449670b09d5eb850b510222c34d6e7bb9b3d"
-  integrity sha512-y8peUlTSSqXfkiWZm5G2Sih9aHWrBEzbxG2dWRPXL76jvnb4l2yKmaXgY522vnn/bj4NuKoWRWjPeY7VXk9bzw==
-  dependencies:
-    axios "^1.3.4"
-    gpt-3-encoder "1.1.4"
-    json-colorizer "^2.2.2"
-    jsonschema "1.4.1"
-    promptrix "^0.2.0"
-    yaml "2.3.1"
-
 ansi-align@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ansi-align/-/ansi-align-2.0.0.tgz#c36aeccba563b89ceb556f3690f0b1d9e3547f7f"
@@ -4123,10 +4100,10 @@ process@^0.11.10:
   resolved "https://registry.yarnpkg.com/process/-/process-0.11.10.tgz#7332300e840161bda3e69a1d1d91a7d4bc16f182"
   integrity sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==
 
-promptrix@0.2.0, promptrix@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/promptrix/-/promptrix-0.2.0.tgz#4dcbdda96f9c1d54584dc68e3d3c44afb4086d1f"
-  integrity sha512-ZMEoqqDU953ov/eedZ0g+6qU1mso3dNConHlHuC87ls82YmBSPQihVROqx+P7v8lhWPSIkAxXpb2QgI5t/tVpQ==
+promptrix@0.3.0, promptrix@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/promptrix/-/promptrix-0.3.0.tgz#5312c3cdaab02b1aaa93ae64e186aea335a88005"
+  integrity sha512-dmAGie1IBKP9mRwRTPjZpV8hlXEy2EtzW8E/wYYdJpbbnfbbL/UN/MdCA4ie1xCqUQTACLgpRjP4f3C0n7nSng==
   dependencies:
     gpt-3-encoder "1.1.4"
     yaml "^1.10.0"

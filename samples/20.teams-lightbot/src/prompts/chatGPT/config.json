@@ -11,5 +11,6 @@
     },
     "default_backends": [
         "gpt-3.5-turbo"
-    ]
+    ],
+    "validator": "Plan"
 }

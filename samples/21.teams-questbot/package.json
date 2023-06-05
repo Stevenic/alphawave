@@ -20,8 +20,8 @@
     },
     "dependencies": {
         "@microsoft/teams-ai": "~0.1.0-preview.2",
-        "alphawave": "~0.4.0",
-        "alphawave-teams": "~0.4.0",
+        "alphawave": "~0.5.0",
+        "alphawave-teams": "~0.5.0",
         "botbuilder": "^4.19.3",
         "botbuilder-azure-blobs": "^4.19.3",
         "dotenv": "^8.2.0",

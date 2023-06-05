@@ -102,13 +102,15 @@ validator.action('Pause', {
 // Create planner
 const planner = new ActionPlanner<ApplicationTurnState>({
     client,
-    validator,
     prompt_options: {
         completion_type: 'chat',
         model: 'gpt-3.5-turbo'
     }
 });
 const promptManager = new DefaultPromptManager<ApplicationTurnState>(path.join(__dirname, '../src/prompts'));
+
+// Add validator
+planner.addValidator('Plan', validator);
 
 // Define storage and application
 const storage = new MemoryStorage();
