@@ -20,7 +20,7 @@
     "dependencies": {
         "alphawave": "~0.5.0",
         "alphawave-agents": "~0.5.0",
-        "promptrix": "0.3.0",
+        "promptrix": "^0.3.1",
         "dotenv": "^8.2.0"
     },
     "devDependencies": {
