@@ -4100,10 +4100,10 @@ process@^0.11.10:
   resolved "https://registry.yarnpkg.com/process/-/process-0.11.10.tgz#7332300e840161bda3e69a1d1d91a7d4bc16f182"
   integrity sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==
 
-promptrix@0.3.0, promptrix@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/promptrix/-/promptrix-0.3.0.tgz#5312c3cdaab02b1aaa93ae64e186aea335a88005"
-  integrity sha512-dmAGie1IBKP9mRwRTPjZpV8hlXEy2EtzW8E/wYYdJpbbnfbbL/UN/MdCA4ie1xCqUQTACLgpRjP4f3C0n7nSng==
+promptrix@^0.3.1, promptrix@^0.3.1S:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/promptrix/-/promptrix-0.3.1.tgz#f3a1aae9531369761e256b4cf4b6a83fab1da5d6"
+  integrity sha512-VuRyJpx0D1TR72766hU/lqKq+TrWNKVNDb8geEJ1xZkvSa3m8R7BUcDydI3gh7S2Y3S3bIQpPkKr5YGy2aIcmQ==
   dependencies:
     gpt-3-encoder "1.1.4"
     yaml "^1.10.0"
