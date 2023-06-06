@@ -78,7 +78,7 @@ describe("JSONResponseValidator", () => {
             const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '{"foo":7}' }, 3);
             assert.notEqual(response, undefined);
             assert.equal(response.valid, false);
-            assert.equal(response.feedback, `The JSON returned had the following errors:\n"instance.foo" is not of a type(s) string\n\nReturn a JSON object that fixes these errors.`);
+            assert.equal(response.feedback, `The JSON returned had errors. Apply these fixes:\nconvert "instance.foo" to a string`);
         });
 
         it("should validate multiple objects in a response and return the last valid one", async () => {
@@ -102,7 +102,7 @@ describe("JSONResponseValidator", () => {
             const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: '{"bar":"foo"}\n{"foo":3}' }, 3);
             assert.notEqual(response, undefined);
             assert.equal(response.valid, false);
-            assert.equal(response.feedback, `The JSON returned had the following errors:\n"instance.foo" is not of a type(s) string\n\nReturn a JSON object that fixes these errors.`);
+            assert.equal(response.feedback, `The JSON returned had errors. Apply these fixes:\nconvert "instance.foo" to a string`);
         });
     });
 });
