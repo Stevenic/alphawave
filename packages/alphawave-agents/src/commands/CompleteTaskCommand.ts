@@ -20,7 +20,7 @@ export interface CompleteTaskCommandInput {
 }
 
 export class CompleteTaskCommand extends SchemaBasedCommand<CompleteTaskCommandInput> {
-    public constructor(title?: string, description?: string) {
+    public constructor(private response?: string, title?: string, description?: string) {
         super(schema, title, description);
     }
 
@@ -28,7 +28,7 @@ export class CompleteTaskCommand extends SchemaBasedCommand<CompleteTaskCommandI
         return Promise.resolve({
             type: "TaskResponse",
             status: "success",
-            message: input.status
+            message: this.response ?? input.status
         });
     }
 }
