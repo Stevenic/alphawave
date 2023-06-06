@@ -3,7 +3,7 @@ import { PromptFunctions, PromptMemory, Tokenizer } from "promptrix";
 import { Command, AgentThought, AgentThoughtSchema } from "./types";
 
 export class AgentCommandValidator implements PromptResponseValidator {
-    private readonly _thoughtValidator = new JSONResponseValidator(AgentThoughtSchema);
+    private readonly _thoughtValidator = new JSONResponseValidator(AgentThoughtSchema, `No valid JSON objects were found in the response. Return a valid JSON object with your thoughts and the next command to perform.`);
     private readonly _commands: Map<string, Command>;
 
     public constructor(commands: Map<string, Command>) {
