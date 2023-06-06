@@ -111,9 +111,8 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
                 return response;
             }
 
-            // Fork the conversation history and the users input to the repair history
+            // Fork the conversation history
             const fork = new MemoryFork(memory);
-            this.addInputToHistory(fork, `${history_variable}-repair`, input!);
 
             // Log repair attempts
             if (this.options.logRepairs) {

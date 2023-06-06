@@ -1,5 +1,5 @@
 import { Validator, Schema, ValidationError } from "jsonschema";
-import { Message, PromptFunctions, PromptMemory, Tokenizer } from "promptrix";
+import { PromptFunctions, PromptMemory, Tokenizer } from "promptrix";
 import { PromptResponse, Validation, PromptResponseValidator } from "./types";
 import { Response } from "./Response";
 
@@ -7,7 +7,7 @@ import { Response } from "./Response";
  * Parses any JSON returned by the model and optionally verifies it against a JSON schema.
  */
 export class JSONResponseValidator implements PromptResponseValidator {
-    public constructor(private schema?: Schema) {
+    public constructor(private schema?: Schema, private missingJsonFeedback: string = 'No valid JSON objects were found in the response. Return a valid JSON object.') {
     }
 
     public validateResponse(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse, remaining_attempts: number): Promise<Validation> {
@@ -20,7 +20,7 @@ export class JSONResponseValidator implements PromptResponseValidator {
             return Promise.resolve({
                 type: 'Validation',
                 valid: false,
-                feedback: 'No valid JSON objects were found in the response. Return a valid JSON object.'
+                feedback: this.missingJsonFeedback
             });
         }
 
