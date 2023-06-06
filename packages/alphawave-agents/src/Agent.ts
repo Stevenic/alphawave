@@ -25,6 +25,7 @@ import { AgentCommandValidator } from "./AgentCommandValidator";
 
 export interface AgentOptions  {
     client: PromptCompletionClient;
+    context_variable?: string;
     prompt: string|string[]|PromptSection;
     prompt_options: PromptCompletionOptions;
     agent_variable?: string;
@@ -45,6 +46,7 @@ export interface AgentOptions  {
 export interface ConfiguredAgentOptions {
     agent_variable: string;
     client: PromptCompletionClient;
+    context_variable: string;
     functions: PromptFunctions;
     history_variable: string;
     initial_thought: AgentThought | undefined;
@@ -91,6 +93,7 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
         super(AgentCommandSchema, title, description);
         this._options = Object.assign({
             agent_variable: 'agent',
+            context_variable: 'context',
             functions: new FunctionRegistry(),
             history_variable: 'history',
             input_variable: 'input',
@@ -149,7 +152,7 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
 
     // Task execution
 
-    public async completeTask(input?: string, agentId?: string): Promise<TaskResponse> {
+    public async completeTask(input?: string, agentId?: string, executeInitialThought: boolean = false): Promise<TaskResponse> {
         // Initialize the input to the next step
         let stepInput = input ?? this.memory.get(this.options.input_variable);
 
@@ -171,6 +174,7 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
             // We don't know how many steps the child agent took, so we'll just assume it took one
             stepInput = response.message;
             step = 1;
+            executeInitialThought = false;
         }
 
         // Start main task loop
@@ -181,7 +185,7 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
             }
 
             // Execute next step
-            const result = await this.executeNextStep(stepInput, agentId);
+            const result = await this.executeNextStep(stepInput, agentId, executeInitialThought);
             if (typeof result === 'string') {
                 stepInput = result;
             } else {
@@ -189,6 +193,7 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
             }
 
             step++;
+            executeInitialThought = false;
         }
 
         // Return too many steps
@@ -209,7 +214,7 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
         this.setAgentState(state, agentId);
 
         // Start the task
-        return this.completeTask(undefined, agentId);
+        return this.completeTask(undefined, agentId, true);
     }
 
     public getAgentState(agentId?: string): AgentState {
@@ -230,7 +235,7 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
         return agentId ? `${this.options.history_variable}-${agentId}` : this.options.history_variable;
     }
 
-    private async executeNextStep(input?: string, agentId?: string): Promise<TaskResponse|string> {
+    private async executeNextStep(input?: string, agentId?: string, executeInitialThought: boolean = false): Promise<TaskResponse|string> {
         try {
             const state = this.getAgentState(agentId);
 
@@ -244,12 +249,12 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
                 agent_prompt = new TemplateSection(this._options.prompt, 'system');
             }
 
+            // Ensure the context variable is set
+            this.memory.set(this.options.context_variable, state.context);
+
             // Create prompt
             const history_variable = this.getAgentHistoryVariable(agentId);
             const sections: PromptSection[] = [agent_prompt];
-            if (state.context) {
-                sections.push(new TextSection(`context:\n${state.context}`, 'system'));
-            }
             sections.push(new AgentCommandSection(this._commands));
             sections.push(PromptInstructionSection);
             const prompt = new Prompt([
@@ -263,49 +268,58 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
                 this.memory.set(this.options.input_variable, input);
             }
 
-            // Add initial thought to history
-            if (state.totalSteps == 0 && this._options.initial_thought) {
-                const history: Message[] = this.memory.get(history_variable) ?? [];
-                history.push({ role: 'assistant', content: JSON.stringify(this._options.initial_thought) });
-                this.memory.set(history_variable, history);
-            }
-
-            // Create command validator
-            const validator = new AgentCommandValidator(this._commands);
-
-            // Create a wave for the prompt
-            const wave = new AlphaWave({
-                client: this._options.client,
-                prompt: prompt,
-                prompt_options: this._options.prompt_options,
-                functions: this._options.functions,
-                history_variable: history_variable,
-                input_variable: this._options.input_variable,
-                max_history_messages: this._options.max_history_messages,
-                max_repair_attempts: this._options.max_repair_attempts,
-                memory: this._options.memory,
-                tokenizer: this._options.tokenizer,
-                logRepairs: this._options.logRepairs,
-                validator: validator
-            });
-
-            // Complete the prompt
             let response: PromptResponse;
-            let maxAttempts = this._options.retry_invalid_responses ? 2 : 1;
-            for (let attempt = 0; attempt < maxAttempts; attempt++) {
-                response = await wave.completePrompt();
-                if (response.status != 'invalid_response') {
-                    break;
-                }
-            }
-
-            // Ensure response succeeded
-            if (response!.status !== 'success') {
-                return {
-                    type: "TaskResponse",
-                    status: response!.status,
-                    message: response!.message as string
+            if (executeInitialThought && this._options.initial_thought) {
+                // Just use initial thought as response
+                // - This is used when agents are being called as commands.
+                response = {
+                    status: 'success',
+                    message: { role: 'assistant', content: this._options.initial_thought } as Message<AgentThought>
                 };
+            } else {
+                // Add initial thought to history
+                if (state.totalSteps == 0 && this._options.initial_thought) {
+                    const history: Message[] = this.memory.get(history_variable) ?? [];
+                    history.push({ role: 'assistant', content: JSON.stringify(this._options.initial_thought) });
+                    this.memory.set(history_variable, history);
+                }
+
+                // Create command validator
+                const validator = new AgentCommandValidator(this._commands);
+
+                // Create a wave for the prompt
+                const wave = new AlphaWave({
+                    client: this._options.client,
+                    prompt: prompt,
+                    prompt_options: this._options.prompt_options,
+                    functions: this._options.functions,
+                    history_variable: history_variable,
+                    input_variable: this._options.input_variable,
+                    max_history_messages: this._options.max_history_messages,
+                    max_repair_attempts: this._options.max_repair_attempts,
+                    memory: this._options.memory,
+                    tokenizer: this._options.tokenizer,
+                    logRepairs: this._options.logRepairs,
+                    validator: validator
+                });
+
+                // Complete the prompt
+                let maxAttempts = this._options.retry_invalid_responses ? 2 : 1;
+                for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                    response = await wave.completePrompt();
+                    if (response.status != 'invalid_response') {
+                        break;
+                    }
+                }
+
+                // Ensure response succeeded
+                if (response!.status !== 'success') {
+                    return {
+                        type: "TaskResponse",
+                        status: response!.status,
+                        message: response!.message as string
+                    };
+                }
             }
 
             // Get agents thought and execute command
