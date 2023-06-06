@@ -14,10 +14,10 @@ const client = new OpenAIClient({
     logRequests: true,
 });
 
-import { CorePriorities } from "./agents/SummarizeImpact/CorePriorities";
+import { SummarizeImpact } from "./agents/SummarizeImpact";
 
 // Create an agent
-const agent = new CorePriorities({
+const agent = new SummarizeImpact({
     client,
     prompt_options: {
         completion_type: 'chat',
@@ -25,16 +25,6 @@ const agent = new CorePriorities({
         temperature: 0.0,
         max_input_tokens: 2000,
         max_tokens: 1000,
-    },
-    initial_thought: {
-        "thoughts": {
-            "thought":"I need to gather the user's core priorities and their impact on each one. This will help me create a comprehensive and specific Core Priorities section for their Connect.",
-            "reasoning":"By asking the user to list their priorities and their impact, I can ensure that their accomplishments and contributions are highlighted in the review. This will also help the user see their progress and growth over the review period.",
-            "plan":"- Ask the user to list their core priorities\n- Ask the user to describe their impact for each priority\n- Create a bulleted list for each priority with their impact"
-        },
-        "command": {
-            "name":"ask","input":{"question":"What were your core priorities for this review period?"}
-        }
     },
     logRepairs: true,
 });
