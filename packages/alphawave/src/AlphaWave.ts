@@ -403,6 +403,11 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
                 return response;
             }
 
+            // Bail out if we're not repairing
+            if (max_repair_attempts <= 0) {
+                return response;
+            }
+
             // Fork the conversation history
             const fork = new MemoryFork(memory);
 
@@ -476,18 +481,10 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
      * @private
      */
     private async repairResponse(fork: MemoryFork, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse, validation: Validation, remaining_attempts: number): Promise<PromptResponse> {
-        const { client, prompt, prompt_options, input_variable, validator } = this.options;
-
-        // Are we out of attempts?
-        const feedback = validation.feedback ?? 'The response was invalid. Try another strategy.';
-        if (remaining_attempts <= 0) {
-            return {
-                status: 'invalid_response',
-                message: feedback
-            };
-        }
+        const { client, prompt, prompt_options, validator } = this.options;
 
         // Add response and feedback to repair history
+        const feedback = validation.feedback ?? 'The response was invalid. Try another strategy.';
         this.addResponseToHistory(fork, `${this.options.history_variable}-repair`, response.message as Message);
         this.addInputToHistory(fork, `${this.options.history_variable}-repair`, feedback);
 
@@ -528,8 +525,16 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
             return repairResponse;
         }
 
-        // Try next attempt
+        // Are we out of attempts?
         remaining_attempts--;
+        if (remaining_attempts <= 0) {
+            return {
+                status: 'invalid_response',
+                message: validation.feedback ?? 'The response was invalid. Try another strategy.'
+            };
+        }
+
+        // Try next attempt
         this.emit('nextRepair', fork, functions, tokenizer, repairResponse, remaining_attempts, validation);
         return await this.repairResponse(fork, functions, tokenizer, repairResponse, validation, remaining_attempts);
     }
