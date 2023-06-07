@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { PromptFunctions, PromptMemory, PromptSection, Tokenizer } from "promptrix";
-import { PromptCompletionClient, PromptCompletionOptions, PromptResponse } from "./types";
-import { ChatCompletionRequestMessage, CreateChatCompletionRequest, CreateChatCompletionResponse, CreateCompletionRequest, CreateCompletionResponse } from "./internals";
+import { EmbeddingsClient, EmbeddingsResponse, PromptCompletionClient, PromptCompletionOptions, PromptResponse } from "./types";
+import { ChatCompletionRequestMessage, CreateChatCompletionRequest, CreateChatCompletionResponse, CreateCompletionRequest, CreateCompletionResponse, CreateEmbeddingRequest, CreateEmbeddingResponse } from "./internals";
 import { Colorize } from "./internals";
 
 export interface OpenAIClientOptions {
@@ -9,12 +9,13 @@ export interface OpenAIClientOptions {
     organization?: string;
     endpoint?: string;
     logRequests?: boolean;
+    retryPolicy?: number[];
 }
 
 /**
  * A client that calls various OpenAI API endpoints.
  */
-export class OpenAIClient implements PromptCompletionClient {
+export class OpenAIClient implements PromptCompletionClient, EmbeddingsClient {
     private _httpClient: AxiosInstance;
 
     private readonly DefaultEndpoint = 'https://api.openai.com';
@@ -23,7 +24,9 @@ export class OpenAIClient implements PromptCompletionClient {
     public readonly options: OpenAIClientOptions;
 
     public constructor(options: OpenAIClientOptions) {
-        this.options = Object.assign({}, options) as OpenAIClientOptions;
+        this.options = Object.assign({
+            retryPolicy: [2000, 5000]
+        }, options) as OpenAIClientOptions;
 
         // Cleanup and validate endpoint
         if (options.endpoint) {
@@ -128,6 +131,22 @@ export class OpenAIClient implements PromptCompletionClient {
         }
     }
 
+    public async createEmbeddings(model: string, inputs: string | string[]): Promise<EmbeddingsResponse> {
+        const response = await this.createEmbeddingRequest({
+            model,
+            input: inputs,
+        });
+
+        // Process response
+        if (response.status < 300) {
+            return { status: 'success', output: response.data.data.sort((a, b) => a.index - b.index).map((item) => item.embedding) };
+        } else if (response.status == 429) {
+            return { status: 'rate_limited', message: `The embeddings API returned a rate limit error.` }
+        } else {
+            return { status: 'error', message: `The embeddings API returned an error status of ${response.status}: ${response.statusText}` };
+        }
+    }
+
     protected addRequestHeaders(headers: Record<string, string>, options: OpenAIClientOptions): void {
         headers['Authorization'] = `Bearer ${options.apiKey}`;
         if (options.organization) {
@@ -155,7 +174,12 @@ export class OpenAIClient implements PromptCompletionClient {
         return this.post(url, request);
     }
 
-    protected async post<TData>(url: string, body: object): Promise<AxiosResponse<TData>> {
+    protected createEmbeddingRequest(request: CreateEmbeddingRequest): Promise<AxiosResponse<CreateEmbeddingResponse>> {
+        const url = `${this.options.endpoint ?? this.DefaultEndpoint}/v1/embeddings`;
+        return this.post(url, request);
+    }
+
+    protected async post<TData>(url: string, body: object, retryCount = 0): Promise<AxiosResponse<TData>> {
         // Initialize request headers
         const requestHeaders: Record<string, string> = {
             'Content-Type': 'application/json',
@@ -164,8 +188,17 @@ export class OpenAIClient implements PromptCompletionClient {
         this.addRequestHeaders(requestHeaders, this.options);
 
         // Send request
-        return await this._httpClient.post(url, body, {
+        const response = await this._httpClient.post(url, body, {
             headers: requestHeaders
         });
+
+        // Check for rate limit error
+        if (response.status == 429 && Array.isArray(this.options.retryPolicy) && retryCount < this.options.retryPolicy.length) {
+            const delay = this.options.retryPolicy[retryCount];
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            return this.post(url, body, retryCount + 1);
+        } else {
+            return response;
+        }
     }
 }

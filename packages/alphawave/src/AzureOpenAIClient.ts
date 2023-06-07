@@ -1,6 +1,6 @@
 import { AxiosResponse } from "axios";
 import { OpenAIClient, OpenAIClientOptions } from "./OpenAIClient";
-import { CreateChatCompletionRequest, CreateChatCompletionResponse, CreateCompletionRequest, CreateCompletionResponse } from "./internals";
+import { CreateChatCompletionRequest, CreateChatCompletionResponse, CreateCompletionRequest, CreateCompletionResponse, CreateEmbeddingRequest, CreateEmbeddingResponse } from "./internals";
 
 export interface AzureOpenAIClientOptions extends OpenAIClientOptions {
     endpoint: string;
@@ -17,7 +17,7 @@ export class AzureOpenAIClient extends OpenAIClient {
         }
     }
 
-    public createCompletion(request: CreateCompletionRequest): Promise<AxiosResponse<CreateCompletionResponse>> {
+    protected createCompletion(request: CreateCompletionRequest): Promise<AxiosResponse<CreateCompletionResponse>> {
         const clone = Object.assign({}, request);
         const deployment = this.removeModel(clone);
         const endpoint = (this.options as AzureOpenAIClientOptions).endpoint;
@@ -26,7 +26,7 @@ export class AzureOpenAIClient extends OpenAIClient {
         return this.post(url, clone);
     }
 
-    public createChatCompletion(request: CreateChatCompletionRequest): Promise<AxiosResponse<CreateChatCompletionResponse>> {
+    protected createChatCompletion(request: CreateChatCompletionRequest): Promise<AxiosResponse<CreateChatCompletionResponse>> {
         const clone = Object.assign({}, request);
         const deployment = this.removeModel(clone);
         const endpoint = (this.options as AzureOpenAIClientOptions).endpoint;
@@ -34,6 +34,16 @@ export class AzureOpenAIClient extends OpenAIClient {
         const url = `${endpoint}/openai/deployments/${deployment}/chat/completions?api-version=${apiVersion}`;
         return this.post(url, clone);
     }
+
+    protected createEmbeddingRequest(request: CreateEmbeddingRequest): Promise<AxiosResponse<CreateEmbeddingResponse>> {
+        const clone = Object.assign({}, request);
+        const deployment = this.removeModel(clone);
+        const endpoint = (this.options as AzureOpenAIClientOptions).endpoint;
+        const apiVersion = (this.options as AzureOpenAIClientOptions).apiVersion ?? '2022-12-01';
+        const url = `${endpoint}/openai/deployments/${deployment}/embeddings?api-version=${apiVersion}`;
+        return this.post(url, clone);
+    }
+
 
     protected addRequestHeaders(headers: Record<string, string>, options: OpenAIClientOptions): void {
         headers['api-key'] = options.apiKey;

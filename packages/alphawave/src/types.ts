@@ -1,5 +1,16 @@
 import { Message, PromptFunctions, PromptMemory, PromptSection, Tokenizer } from "promptrix";
 
+export interface EmbeddingsClient {
+    createEmbeddings(model: string, inputs: string|string[]): Promise<EmbeddingsResponse>;
+}
+
+export type EmbeddingsResponseStatus = 'success' | 'error' | 'rate_limited';
+
+export interface EmbeddingsResponse {
+    status: EmbeddingsResponseStatus;
+    output?: number[][];
+    message?: string;
+}
 
 export interface PromptCompletionClient {
     completePrompt(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, prompt: PromptSection, options: PromptCompletionOptions): Promise<PromptResponse>;
