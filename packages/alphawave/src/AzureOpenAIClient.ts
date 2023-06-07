@@ -2,12 +2,35 @@ import { AxiosResponse } from "axios";
 import { OpenAIClient, OpenAIClientOptions } from "./OpenAIClient";
 import { CreateChatCompletionRequest, CreateChatCompletionResponse, CreateCompletionRequest, CreateCompletionResponse, CreateEmbeddingRequest, CreateEmbeddingResponse } from "./internals";
 
+/**
+ * Additional configuration options specific to the `AzureOpenAI` client.
+ */
 export interface AzureOpenAIClientOptions extends OpenAIClientOptions {
+    /**
+     * Deployment endpoint to use.
+     */
     endpoint: string;
+
+    /**
+     * Optional. Version of the API being called. Defaults to `2022-12-01`.
+     */
     apiVersion?: string;
 }
 
-export class AzureOpenAIClient extends OpenAIClient {
+/**
+ * A `PromptCompletionClient` and `EmbeddingsClient` for calling Azure OpenAI models.
+ * @remarks
+ * Use of this class is required when calling the Azure OpenAI service as the format
+ * of the API endpoints is a little different.
+ *
+ * Also note that you should configure any `prompt_option.model` settings with the
+ * name of your model deployment.
+ */
+export class AzureOpenAIClient extends OpenAIClient<AzureOpenAIClientOptions> {
+    /**
+     * Creates a new `AzureOpenAIClient` instance.
+     * @param options Options to configure the client with.
+     */
     public constructor(options: AzureOpenAIClientOptions) {
         super(options);
 
@@ -17,6 +40,9 @@ export class AzureOpenAIClient extends OpenAIClient {
         }
     }
 
+    /**
+     * @private
+     */
     protected createCompletion(request: CreateCompletionRequest): Promise<AxiosResponse<CreateCompletionResponse>> {
         const clone = Object.assign({}, request);
         const deployment = this.removeModel(clone);
@@ -26,6 +52,9 @@ export class AzureOpenAIClient extends OpenAIClient {
         return this.post(url, clone);
     }
 
+    /**
+     * @private
+     */
     protected createChatCompletion(request: CreateChatCompletionRequest): Promise<AxiosResponse<CreateChatCompletionResponse>> {
         const clone = Object.assign({}, request);
         const deployment = this.removeModel(clone);
@@ -35,6 +64,9 @@ export class AzureOpenAIClient extends OpenAIClient {
         return this.post(url, clone);
     }
 
+    /**
+     * @private
+     */
     protected createEmbeddingRequest(request: CreateEmbeddingRequest): Promise<AxiosResponse<CreateEmbeddingResponse>> {
         const clone = Object.assign({}, request);
         const deployment = this.removeModel(clone);
@@ -44,11 +76,16 @@ export class AzureOpenAIClient extends OpenAIClient {
         return this.post(url, clone);
     }
 
-
-    protected addRequestHeaders(headers: Record<string, string>, options: OpenAIClientOptions): void {
+     /**
+     * @private
+     */
+     protected addRequestHeaders(headers: Record<string, string>, options: OpenAIClientOptions): void {
         headers['api-key'] = options.apiKey;
     }
 
+    /**
+     * @private
+     */
     private removeModel(request: { model?: string }): string {
         const model = request.model;
         delete request.model;

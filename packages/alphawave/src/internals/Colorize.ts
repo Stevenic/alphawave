@@ -1,5 +1,8 @@
 const colorizer = require('json-colorizer');
 
+/**
+ * @private
+ */
 export class Colorize {
     public static error(error: Error|string): string {
         if (typeof error === 'string') {

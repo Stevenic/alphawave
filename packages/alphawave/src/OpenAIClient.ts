@@ -4,29 +4,70 @@ import { EmbeddingsClient, EmbeddingsResponse, PromptCompletionClient, PromptCom
 import { ChatCompletionRequestMessage, CreateChatCompletionRequest, CreateChatCompletionResponse, CreateCompletionRequest, CreateCompletionResponse, CreateEmbeddingRequest, CreateEmbeddingResponse } from "./internals";
 import { Colorize } from "./internals";
 
+/**
+ * Options for configuring an `OpenAIClient`.
+ */
 export interface OpenAIClientOptions {
+    /**
+     * API key to use when calling the OpenAI API.
+     * @remarks
+     * A new API key can be created at https://platform.openai.com/account/api-keys.
+     */
     apiKey: string;
+
+    /**
+     * Optional. Organization to use when calling the OpenAI API.
+     */
     organization?: string;
+
+    /**
+     * Optional. Endpoint to use when calling the OpenAI API.
+     * @remarks
+     * For Azure OpenAI this is the deployment endpoint.
+     */
     endpoint?: string;
+
+    /**
+     * Optional. Whether to log requests to the console.
+     * @remarks
+     * This is useful for debugging prompts and defaults to `false`.
+     */
     logRequests?: boolean;
+
+    /**
+     * Optional. Retry policy to use when calling the OpenAI API.
+     * @remarks
+     * The default retry policy is `[2000, 5000]` which means that the first retry will be after
+     * 2 seconds and the second retry will be after 5 seconds.
+     */
     retryPolicy?: number[];
 }
 
 /**
- * A client that calls various OpenAI API endpoints.
+ * A `PromptCompletionClient` and `EmbeddingsClient` for calling OpenAI models.
+ * @remarks
+ * If you're wanting to call the Azure OpenAI service, you must use the
+ * `AzureOpenAIClient` class instead.
  */
-export class OpenAIClient implements PromptCompletionClient, EmbeddingsClient {
+export class OpenAIClient<TOptions extends OpenAIClientOptions = OpenAIClientOptions> implements PromptCompletionClient, EmbeddingsClient {
     private _httpClient: AxiosInstance;
 
     private readonly DefaultEndpoint = 'https://api.openai.com';
     private readonly UserAgent = 'AlphaWave';
 
-    public readonly options: OpenAIClientOptions;
+    /**
+     * Options the client was configured with.
+     */
+    public readonly options: TOptions;
 
+    /**
+     * Creates a new `OpenAIClient` instance.
+     * @param options Options for configuring an `OpenAIClient`.
+     */
     public constructor(options: OpenAIClientOptions) {
         this.options = Object.assign({
             retryPolicy: [2000, 5000]
-        }, options) as OpenAIClientOptions;
+        }, options) as TOptions;
 
         // Cleanup and validate endpoint
         if (options.endpoint) {
@@ -51,10 +92,21 @@ export class OpenAIClient implements PromptCompletionClient, EmbeddingsClient {
         });
     }
 
-    public async completePrompt(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, prompt: PromptSection, options: PromptCompletionOptions): Promise<PromptResponse> {
+    /**
+     * Completes a prompt using the OpenAI API.
+     * @remarks
+     * The API used, Chat Completion or Text Completion, will be determined by the `prompt_options.completion_type` property.
+     * @param memory Memory to use when rendering the prompt.
+     * @param functions Functions to use when rendering the prompt.
+     * @param tokenizer Tokenizer to use when rendering the prompt.
+     * @param prompt Prompt to complete.
+     * @param prompt_options Options for completing the prompt.
+     * @returns A `PromptResponse` with the status and message.
+     */
+    public async completePrompt(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, prompt: PromptSection, prompt_options: PromptCompletionOptions): Promise<PromptResponse> {
         const startTime = Date.now();
-        const max_input_tokens = options.max_input_tokens ?? 1024;
-        if (options.completion_type == 'text') {
+        const max_input_tokens = prompt_options.max_input_tokens ?? 1024;
+        if (prompt_options.completion_type == 'text') {
             // Render prompt
             const result = await prompt.renderAsText(memory, functions, tokenizer, max_input_tokens);
             if (result.tooLong) {
@@ -67,9 +119,9 @@ export class OpenAIClient implements PromptCompletionClient, EmbeddingsClient {
 
             // Call text completion API
             const request: CreateCompletionRequest = this.copyOptionsToRequest<CreateCompletionRequest>({
-                model: options.model,
+                model: prompt_options.model,
                 prompt: result.output,
-            }, options, ['max_tokens', 'temperature', 'top_p', 'n', 'stream', 'logprobs', 'echo', 'stop', 'presence_penalty', 'frequency_penalty', 'best_of', 'logit_bias', 'user']);
+            }, prompt_options, ['max_tokens', 'temperature', 'top_p', 'n', 'stream', 'logprobs', 'echo', 'stop', 'presence_penalty', 'frequency_penalty', 'best_of', 'logit_bias', 'user']);
             const response = await this.createCompletion(request);
             if (this.options.logRequests) {
                 console.log(Colorize.title('RESPONSE:'));
@@ -104,9 +156,9 @@ export class OpenAIClient implements PromptCompletionClient, EmbeddingsClient {
 
             // Call chat completion API
             const request: CreateChatCompletionRequest = this.copyOptionsToRequest<CreateChatCompletionRequest>({
-                model: options.model,
+                model: prompt_options.model,
                 messages: result.output as ChatCompletionRequestMessage[],
-            }, options, ['max_tokens', 'temperature', 'top_p', 'n', 'stream', 'logprobs', 'echo', 'stop', 'presence_penalty', 'frequency_penalty', 'best_of', 'logit_bias', 'user']);
+            }, prompt_options, ['max_tokens', 'temperature', 'top_p', 'n', 'stream', 'logprobs', 'echo', 'stop', 'presence_penalty', 'frequency_penalty', 'best_of', 'logit_bias', 'user']);
             const response = await this.createChatCompletion(request);
             if (this.options.logRequests) {
                 console.log(Colorize.title('CHAT RESPONSE:'));
@@ -131,6 +183,12 @@ export class OpenAIClient implements PromptCompletionClient, EmbeddingsClient {
         }
     }
 
+    /**
+     * Creates embeddings for the given inputs using the OpenAI API.
+     * @param model Name of the model to use (or deployment for Azure).
+     * @param inputs Text inputs to create embeddings for.
+     * @returns A `EmbeddingsResponse` with a status and the generated embeddings or a message when an error occurs.
+     */
     public async createEmbeddings(model: string, inputs: string | string[]): Promise<EmbeddingsResponse> {
         const response = await this.createEmbeddingRequest({
             model,
@@ -147,6 +205,9 @@ export class OpenAIClient implements PromptCompletionClient, EmbeddingsClient {
         }
     }
 
+    /**
+     * @private
+     */
     protected addRequestHeaders(headers: Record<string, string>, options: OpenAIClientOptions): void {
         headers['Authorization'] = `Bearer ${options.apiKey}`;
         if (options.organization) {
@@ -154,6 +215,9 @@ export class OpenAIClient implements PromptCompletionClient, EmbeddingsClient {
         }
     }
 
+    /**
+     * @private
+     */
     protected copyOptionsToRequest<TRequest>(target: Partial<TRequest>, src: any, fields: string[]): TRequest {
         for (const field of fields) {
             if (src[field] !== undefined) {
@@ -164,21 +228,33 @@ export class OpenAIClient implements PromptCompletionClient, EmbeddingsClient {
         return target as TRequest;
     }
 
+    /**
+     * @private
+     */
     protected createCompletion(request: CreateCompletionRequest): Promise<AxiosResponse<CreateCompletionResponse>> {
         const url = `${this.options.endpoint ?? this.DefaultEndpoint}/v1/completions`;
         return this.post(url, request);
     }
 
+    /**
+     * @private
+     */
     protected createChatCompletion(request: CreateChatCompletionRequest): Promise<AxiosResponse<CreateChatCompletionResponse>> {
         const url = `${this.options.endpoint ?? this.DefaultEndpoint}/v1/chat/completions`;
         return this.post(url, request);
     }
 
+    /**
+     * @private
+     */
     protected createEmbeddingRequest(request: CreateEmbeddingRequest): Promise<AxiosResponse<CreateEmbeddingResponse>> {
         const url = `${this.options.endpoint ?? this.DefaultEndpoint}/v1/embeddings`;
         return this.post(url, request);
     }
 
+    /**
+     * @private
+     */
     protected async post<TData>(url: string, body: object, retryCount = 0): Promise<AxiosResponse<TData>> {
         // Initialize request headers
         const requestHeaders: Record<string, string> = {

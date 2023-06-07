@@ -18,7 +18,7 @@ describe("DefaultResponseValidator", () => {
     describe("validateResponse", () => {
         it("should return isValid === true", async () => {
             const validator = new DefaultResponseValidator();
-            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: 'Hello World' });
+            const response = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message: 'Hello World' }, 3);
             assert.notDeepEqual(response, undefined);
             assert.equal(response.valid, true);
         });
