@@ -5,11 +5,26 @@ import { Response } from "./Response";
 
 /**
  * Parses any JSON returned by the model and optionally verifies it against a JSON schema.
+ * @template TContent Optional. Type of the content of the message. Defaults to `Record<string, any>`.
  */
-export class JSONResponseValidator implements PromptResponseValidator {
+export class JSONResponseValidator<TContent = Record<string, any>> implements PromptResponseValidator {
+    /**
+     * Creates a new `JSONResponseValidator` instance.
+     * @param schema Optional. JSON schema to validate the response against.
+     * @param missingJsonFeedback Optional. Feedback to give when no JSON is returned. Defaults to `No valid JSON objects were found in the response. Return a valid JSON object.`
+     */
     public constructor(private schema?: Schema, private missingJsonFeedback: string = 'No valid JSON objects were found in the response. Return a valid JSON object.') {
     }
 
+    /**
+     * Validates the response.
+     * @param memory Memory used to render the prompt.
+     * @param functions Functions used to render the prompt.
+     * @param tokenizer Tokenizer used to render the prompt.
+     * @param response Response to validate.
+     * @param remaining_attempts Number of remaining validation attempts.
+     * @returns A `Validation` with the status and value. The validation is always valid.
+     */
     public validateResponse(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse, remaining_attempts: number): Promise<Validation> {
         const message = response.message;
         const text = typeof message === 'string' ? message : message.content ?? '';
