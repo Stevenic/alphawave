@@ -80,6 +80,8 @@ export interface AgentState {
 
 export interface AgentEvents {
     newThought: (thought: AgentThought) => void;
+    beforeCommand: (command: Command, input: Record<string, any>) => void;
+    afterCommand: (command: Command, input: Record<string, any>, response: any) => void;
 }
 
 export type AgentEmitter = StrictEventEmitter<EventEmitter, AgentEvents>;
@@ -372,7 +374,9 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
             // Pass control to child agent
             const agentId = uuidv4();
             const childAgent = command as Agent;
+            this.events.emit('beforeCommand', childAgent, input['input']);
             const response = await childAgent.execute(input['input'], this.memory, this.functions, this.tokenizer);
+            this.events.emit('afterCommand', childAgent, input['input'], response);
             switch (response.status) {
                 case 'success':
                     // Just return the response message since agent completed without additional input
@@ -390,7 +394,10 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
             }
         } else {
             // Execute command and return result
-            return await command.execute(input, this.memory, this.functions, this.tokenizer);
+            this.events.emit('beforeCommand', command, input);
+            const response = await command.execute(input, this.memory, this.functions, this.tokenizer);
+            this.events.emit('afterCommand', command, input, response);
+            return response;
         }
     }
 }
