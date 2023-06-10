@@ -19,9 +19,7 @@ const agent = new Agent({
     client,
     prompt: [
         `Use the ask command to prompt the user for their question.`,
-        `Pass that query to the bingSearch command.`,
-        `Use the webBrowser command to ask each page the users question until an answer is found.`,
-        `Keep your answers grounded in the facts returned by the tools and include a link to your source.`
+        `Pass that query to the bingSearch command to find the answer.`,
     ],
     prompt_options: {
         completion_type: 'chat',
@@ -34,7 +32,7 @@ const agent = new Agent({
         "thoughts": {
             "thought":"I need to ask the user what they want to know",
             "reasoning":"I don't have any information to start with, so I need to get some input from the user",
-            "plan":"- ask the user a question\n- use bingSearch to find relevant results\n- use webBrowser to ask each page the question\n- use finalAnswer to generate a response."
+            "plan":"- ask the user a question\n- use bingSearch to find relevant results\n- use finalAnswer to generate a response."
         },
         "command": {
             "name":"ask",
@@ -49,19 +47,20 @@ const agent = new Agent({
 agent.addCommand(new AskCommand());
 agent.addCommand(new FinalAnswerCommand());
 agent.addCommand(new BingSearchCommand({
-    apiKey: process.env.BingAPIKey!
-}));
-agent.addCommand(new WebBrowserCommand({
-    prompt_client: client,
-    prompt_options: {
-        completion_type: 'chat',
-        model: 'gpt-3.5-turbo',
-        temperature: 0.0,
-        max_input_tokens: 2200,
-        max_tokens: 800,
-    },
-    embeddings_client: client,
-    embeddings_model: 'text-embedding-ada-002'
+    apiKey: process.env.BingAPIKey!,
+    deep_search: {
+        prompt_client: client,
+        prompt_options: {
+            completion_type: 'chat',
+            model: 'gpt-3.5-turbo',
+            temperature: 0.0,
+            max_input_tokens: 2200,
+            max_tokens: 800,
+        },
+        embeddings_client: client,
+        embeddings_model: 'text-embedding-ada-002',
+        log_activity: true,
+    }
 }));
 
 // Listen for new thoughts
