@@ -1,56 +1,41 @@
-import { PromptMemory, PromptFunctions, Tokenizer } from "promptrix";
-import { PromptCompletionClient, PromptCompletionOptions, EmbeddingsClient } from "alphawave";
-import { PromptCompletionModel, EmbeddingsModel } from "alphawave-langchain";
-import { AxiosRequestConfig } from "axios";
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { MemoryVectorStore } from "langchain/vectorstores/memory";
-import { Document } from "langchain/document";
+import { PromptMemory, PromptFunctions, Tokenizer, UserMessage } from "promptrix";
+import { MemoryFork, AlphaWave } from "alphawave";
 import { SchemaBasedCommand } from "../SchemaBasedCommand";
+import { WebPageSearchCommand, WebPageSearchCommandOptions, WebPageSearchResult } from "./WebPageSearchCommand";
 import { WebUtilities } from "../WebUtilities";
 
-const ALLOWED_CONTENT_TYPES = [
-    "text/html",
-    "application/json",
-    "application/xml",
-    "application/javascript",
-    "text/plain",
-];
 
+export interface WebBrowserCommandOptions extends WebPageSearchCommandOptions {
+    /**
+     * Maximum number of pages to search.
+     * @remarks
+     * The WebBrowserCommand can search related pages when this value is greater than 1. The
+     * default is `1`.
+     */
+    max_page_depth?: number;
 
-const DEFAULT_HEADERS = {
-    Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-    "Accept-Encoding": "gzip, deflate",
-    "Accept-Language": "en-US,en;q=0.5",
-    "Alt-Used": "LEAVE-THIS-KEY-SET-BY-TOOL",
-    Connection: "keep-alive",
-    Host: "LEAVE-THIS-KEY-SET-BY-TOOL",
-    Referer: "https://www.google.com/",
-    "Sec-Fetch-Dest": "document",
-    "Sec-Fetch-Mode": "navigate",
-    "Sec-Fetch-Site": "cross-site",
-    "Upgrade-Insecure-Requests": "1",
-    "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/111.0",
-};
+    /**
+     * Maximum number of milliseconds to search for an answer.
+     * @remarks
+     * Defaults to 30000 (30 seconds).
+     */
+    max_search_time?: number;
 
-
-
-export interface WebBrowserCommandOptions {
-    prompt_client: PromptCompletionClient;
-    prompt_options: PromptCompletionOptions;
-    embeddings_client: EmbeddingsClient;
-    embeddings_model: string;
-    headers?: Record<string, any>;
-    axiosConfig?: Omit<AxiosRequestConfig, "url">;
+    /**
+     * Whether or not to log activity to the console.
+     * @remarks
+     * Defaults to false.
+     */
+    log_activity?: boolean;
 }
 
 export interface WebBrowserCommandInput {
     url: string;
-    question?: string;
+    query?: string;
 }
 
 export class WebBrowserCommand extends SchemaBasedCommand<WebBrowserCommandInput> {
     private readonly _options: WebBrowserCommandOptions;
-    private readonly _headers: Record<string, any>;
 
     public constructor(options: WebBrowserCommandOptions) {
         super({
@@ -62,90 +47,136 @@ export class WebBrowserCommand extends SchemaBasedCommand<WebBrowserCommandInput
                     type: "string",
                     description: "valid http/https URL including protocol"
                 },
-                question: {
+                query: {
                     type: "string",
-                    description: "Optional question to ask of the page the page"
+                    description: "optional query or question to search for on the page"
                 }
             },
             required: ["url"],
             returns: "answer or summary"
         });
         this._options = options;
-        this._headers = Object.assign({}, DEFAULT_HEADERS, options.headers);
     }
 
-    public async execute(input: WebBrowserCommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<string> {
-        // Create model wrapper for AlphaWave client
-        const model = new PromptCompletionModel({
-            client: this._options.prompt_client,
-            prompt_options: this._options.prompt_options,
-            memory,
-            functions,
-            tokenizer
-        });
-
-        // Create embeddings wrapper for AlphaWave client
-        const embeddings = new EmbeddingsModel({
-            client: this._options.embeddings_client,
-            model: this._options.embeddings_model
-        });
-
-        // Load page and extract text
-        let text;
-        const summarize = !input.question;
+    public async execute(input: WebBrowserCommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<WebPageSearchResult|string> {
         try {
-            const url = input.url;
-            const html = await WebUtilities.fetchPage(url, this._headers, this._options.axiosConfig ?? {}, ALLOWED_CONTENT_TYPES);
-            text = WebUtilities.extractText(html, url, summarize);
+            if (input.query) {
+                // Create a WebPageSearch command to use
+                const search = new WebPageSearchCommand(this._options);
+
+                // Read through n pages looking for an answer
+                let { url, query } = input;
+                const maxDepth = this._options.max_page_depth ?? 1;
+                const maxTime = this._options.max_search_time ?? 30000;
+                const startTime = Date.now();
+                const visited = new Set<string>();
+                for (let i = 0; i < maxDepth; i++) {
+                    visited.add(url.toLowerCase());
+
+                    // Log activity
+                    if (this._options.log_activity) {
+                        console.log(`\x1b[2m[WebBrowser searching ${url}]\x1b[0m`);
+                    }
+
+                    // Search page
+                    const result = await search.execute({ url, query }, memory, functions, tokenizer);
+                    if (result.answered) {
+                        // Return result
+                        return result;
+                    } else if (result.error) {
+                        // Return error
+                        return result.error;
+                    } else if (result.next_page) {
+                        // Check for timeout
+                        if (Date.now() - startTime > maxTime) {
+                            return `max search time exceeded`;
+                        }
+
+                        // Read next page
+                        url = result.next_page;
+
+                        // Don't visit the same url twice
+                        if (visited.has(url.toLowerCase())) {
+                            // Done searching
+                            break;
+                        }
+                    } else {
+                        // Done searching
+                        break;
+                    }
+                }
+
+                // If we get here, we didn't find an answer
+                return {
+                    url: input.url,
+                    answered: false,
+                    answer: `no answer found`,
+                };
+            } else {
+                // Log activity
+                if (this._options.log_activity) {
+                    console.log(`\x1b[2m[WebBrowser summarizing ${input.url}]\x1b[0m`);
+                }
+
+                // Load page and extract text
+                let page = '';
+                try {
+                    page = await this.fetchPageText(input.url);
+                } catch (err: unknown) {
+                    return {
+                        url: input.url,
+                        answered: false,
+                        error: (err as any).toString()
+                    };
+                }
+
+                // Get the first n tokens of page text for context
+                const maxTokens = (this._options.prompt_options.max_input_tokens ?? 1024) - 200;
+                const encoded = tokenizer.encode(page);
+                const text = encoded.length <= maxTokens ? page : tokenizer.decode(encoded.slice(0, maxTokens));
+
+
+                // Fork memory and set template values
+                const fork = new MemoryFork(memory);
+                fork.set("url", input.url);
+                fork.set("text", text);
+
+                // Initialize the prompt
+                const prompt = new UserMessage([
+                    `url: {{$url}}`,
+                    `text:\n{{$text}}\n`,
+                    `Generate a summary of the page text above.`
+                ].join('\n'));
+
+                // Create wave and complete prompt
+                const wave = new AlphaWave({
+                    prompt,
+                    client: this._options.prompt_client,
+                    prompt_options: this._options.prompt_options,
+                    memory: fork,
+                });
+                const response = await wave.completePrompt<string>();
+                if (typeof response.message === "string") {
+                    return `${response.status} while search for answer: ${response.message}`;
+                }
+
+                return response.message.content;
+            }
         } catch (err: unknown) {
             return (err as any).toString();
         }
+    }
 
-        // Are we summarizing?
-        let prompt = `url: ${input.url}\ntext:\n`;
-        let context: string = '';
-        const tokenBudget = (this._options.prompt_options.max_tokens ?? 1024) * 0.8;
-        if (summarize) {
-            // Take the first n tokens of text
-            const tokens = tokenizer.encode(text);
-            if (tokens.length > tokenBudget) {
-                context = tokenizer.decode(tokens.slice(0, tokenBudget));
-            } else {
-                context = text;
-            }
-
-            // Create prompt
-            prompt += context + `\n\n- Summarize the text above.\n- In a separate section, include up to 5 relevant links (include title and url) formatted as \`["<title>"]("<url>")\``;
-        } else {
-            // Split the text into chunks
-            const textSplitter = new RecursiveCharacterTextSplitter({
-                chunkSize: 1600,
-                chunkOverlap: 200,
-            });
-            const texts = await textSplitter.splitText(text);
-
-            // Convert the chunks to documents
-            const docs = texts.map(pageContent => new Document({ pageContent, metadata: [] }));
-
-            // Add them to an in-memory vector store
-            const vectorStore = await MemoryVectorStore.fromDocuments(docs, embeddings);
-
-            // Query for the chunks and add as many will fit into the context
-            const results = await vectorStore.similaritySearch(input.question!, 10);
-            let tokenCount = 0;
-            for (const result of results) {
-                const tokens = tokenizer.encode(result.pageContent);
-                if (tokenCount + tokens.length > tokenBudget) {
-                    break;
-                }
-                context += result.pageContent + "\n";
-                tokenCount += tokens.length;
-            }
-
-            // Create prompt
-            prompt += context + `\n\n- Use the text above to answer "${input.question}"\n- Keep your answer ground in the facts of the text.\n- Return "answer not found" if the answer isn't in the text.`;
+    private async fetchPageText(url: string): Promise<string> {
+        const html = await WebUtilities.fetchPage(url, this._options.headers ?? {}, this._options.axios_config ?? {});
+        switch (this._options.parse_mode ?? "text") {
+            default:
+            case "text":
+                return WebUtilities.extractText(html, url, false);
+            case "markdown":
+                return WebUtilities.htmlToMarkdown(html, url);
+            case "html":
+                return html;
         }
-
-        return model.predict(prompt);
     }
 }

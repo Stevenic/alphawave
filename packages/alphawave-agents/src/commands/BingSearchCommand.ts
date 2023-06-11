@@ -2,7 +2,7 @@ import { PromptCompletionClient, PromptCompletionOptions, EmbeddingsClient, Memo
 import { PromptMemory, PromptFunctions, Tokenizer, Prompt, UserMessage } from "promptrix";
 import { SchemaBasedCommand } from "../SchemaBasedCommand";
 import axios, { AxiosInstance } from 'axios';
-import { WebBrowserCommand } from "./WebBrowserCommand";
+import { WebBrowserCommand, WebBrowserCommandOptions } from "./WebBrowserCommand";
 
 const DEFAULT_MAX_TOKENS = 250;
 const DEFAULT_MAX_SEARCH_TIME = 60000;
@@ -14,16 +14,7 @@ export interface BingSearchCommandOptions {
     include_snippets?: boolean;
     max_tokens?: number;
     unique_hosts?: boolean;
-    deep_search?: BingDeepSearchOptions;
-}
-
-export interface BingDeepSearchOptions {
-    prompt_client: PromptCompletionClient;
-    prompt_options: PromptCompletionOptions;
-    embeddings_client: EmbeddingsClient;
-    embeddings_model: string;
-    max_search_time?: number;
-    log_activity?: boolean;
+    deep_search?: WebBrowserCommandOptions;
 }
 
 export interface BingSearchCommandInput {
@@ -32,7 +23,7 @@ export interface BingSearchCommandInput {
 
 export class BingSearchCommand extends SchemaBasedCommand<BingSearchCommandInput> {
     private readonly _options: BingSearchCommandOptions;
-    private readonly _deepSearch?: BingDeepSearchOptions;
+    private readonly _deepSearch?: WebBrowserCommandOptions;
     private readonly _endpoint: string;
     private readonly _httpClient: AxiosInstance;
 
@@ -161,83 +152,30 @@ export class BingSearchCommand extends SchemaBasedCommand<BingSearchCommandInput
 
         // Return filtered results
         return output;
-   }
+    }
 
     private async executeDeepSearch(query: string, results: SearchResult[], memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<string> {
-        const options = this._deepSearch!;
         const startTime = Date.now();
-        const stopTime = startTime + (options.max_search_time ?? DEFAULT_MAX_SEARCH_TIME);
-
-        // Create a WebBrowser command
-        const webBrowser = new WebBrowserCommand({
-            prompt_client: options.prompt_client,
-            prompt_options: options.prompt_options,
-            embeddings_client: options.embeddings_client,
-            embeddings_model: options.embeddings_model,
-        });
-
-        // Create a response validator for answer evaluator
-        const answerValidator = new JSONResponseValidator<AnswerEvaluation>({
-            type: "object",
-            properties: {
-                continueSearch: {
-                    type: "boolean"
-                }
-            },
-            required: ["continueSearch"]
-        });
+        const stopTime = startTime + (this._deepSearch!.max_search_time ?? DEFAULT_MAX_SEARCH_TIME);
 
         // Fork the memory for the deep search
         const fork = new MemoryFork(memory);
         for (const result of results) {
-            // Log activity
-            if (options.log_activity) {
-                console.log(`\x1b[2m[reading ${result.url}]\x1b[0m`);
-            }
+            // Create a WebBrowser command
+            const options = Object.assign({}, this._deepSearch, { max_search_time: stopTime - Date.now() });
+            const webBrowser = new WebBrowserCommand(options);
 
             // Read the page
-            const answer = await webBrowser.execute({ url: result.url, question: query }, fork, functions, tokenizer);
+            const answer = await webBrowser.execute({ url: result.url, query: query }, fork, functions, tokenizer);
+            if (typeof answer === "string") {
+                return answer;
+            } else if (answer.answered && answer.answer) {
+                return `url: ${result.url}\n\n${answer.answer}`;
+            }
 
             // Check for max search time
             if (Date.now() > stopTime) {
                 return "Max search time exceeded";
-            }
-
-            // Evaluate the answer
-            fork.set('url', result.url);
-            fork.set('question', query);
-            fork.set('answer', answer);
-            const prompt = new Prompt([
-                new UserMessage([
-                    `page url: {{$url}}`,
-                    `page text:\n{{$answer}}\n`,
-                    `user question:\n{{$question}}\n`,
-                    `steps:`,
-                    `- Think about whether the page text answers the users question`,
-                    `- If not we should continue looking at other search results pages. `,
-                    `- Return your response using this JSON {"continueSearch": <true|false>}\n`,
-                    `Do steps 1, 2, and 3 and show your work for each step.`
-                ].join(`\n`)),
-            ]);
-
-            // Create and execute a wave
-            const wave = new AlphaWave({
-                prompt,
-                client: options.prompt_client,
-                prompt_options: options.prompt_options,
-                memory: fork,
-                validator: answerValidator,
-            });
-            const response = await wave.completePrompt<AnswerEvaluation>();
-            if (typeof response.message === "string") {
-                return `${response.status} while search for answer: ${response.message}`;
-            }
-
-            // Check for answer or time limit
-            if (!response.message.content.continueSearch) {
-                return `page url: ${result.url}\nanswer:\n${answer}`;
-            } else if (Date.now() >= stopTime) {
-                return `Max search time exceeded`;
             }
         }
 
@@ -249,8 +187,4 @@ interface SearchResult {
     url: string;
     name: string;
     snippet: string;
-}
-
-interface AnswerEvaluation {
-    continueSearch: boolean;
 }

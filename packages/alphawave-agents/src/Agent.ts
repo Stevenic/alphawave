@@ -419,5 +419,5 @@ const PromptInstructionSection = new TextSection([
     `Return a JSON object with your thoughts and the next command to perform`,
     `Only respond with the JSON format below and based your plan on the commands above`,
     `Response Format:`,
-    `{"thoughts":{"thought":"<your current thought>","reasoning":"<self reflect on why you made this decision>","plan":"- short bulleted\n- list that conveys\n- long-term plan"},"command":{"name":"<command name>","input":{"<name>":"<value>"}}}`
+    `{"thoughts":{"thought":"<your current thought>","reasoning":"<self reflect on why you made this decision>","plan":"- short bulleted\\n- list that conveys\\n- long-term plan"},"command":{"name":"<command name>","input":{"<name>":"<value>"}}}`
 ].join('\n'), 'system');

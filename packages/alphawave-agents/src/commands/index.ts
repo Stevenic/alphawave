@@ -14,4 +14,5 @@ export * from "./SerpAPICommand";
 export * from "./SetPropertyCommand";
 export * from "./VectorStoreQACommand";
 export * from "./WebBrowserCommand";
+export * from "./WebPageSearchCommand";
 export * from "./WriteFileCommand";

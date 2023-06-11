@@ -19,7 +19,9 @@ const agent = new Agent({
     client,
     prompt: [
         `Use the ask command to prompt the user for their question.`,
-        `Pass that query to the bingSearch command to find the answer.`,
+        `Send a query to the bingSearch command to find the users answer.`,
+        `Always use bingSearch to verify that your answers are accurate.`,
+        `When showing lists to the user, show a bulleted list.`,
     ],
     prompt_options: {
         completion_type: 'chat',
@@ -32,7 +34,7 @@ const agent = new Agent({
         "thoughts": {
             "thought":"I need to ask the user what they want to know",
             "reasoning":"I don't have any information to start with, so I need to get some input from the user",
-            "plan":"- ask the user a question\n- use bingSearch to find relevant results\n- use finalAnswer to generate a response."
+            "plan":"- ask the user a question\n- use bingSearch to find an answer\n- use finalAnswer to generate a response."
         },
         "command": {
             "name":"ask",
@@ -59,6 +61,8 @@ agent.addCommand(new BingSearchCommand({
         },
         embeddings_client: client,
         embeddings_model: 'text-embedding-ada-002',
+        max_search_time: 60000,
+        parse_mode: 'text',
         log_activity: true,
     }
 }));
