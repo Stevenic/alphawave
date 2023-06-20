@@ -1,7 +1,7 @@
 import { ConversationHistory, FunctionRegistry, GPT3Tokenizer, Message, Prompt, PromptFunctions, PromptMemory, PromptSection, Tokenizer, VolatileMemory } from "promptrix";
 import { StrictEventEmitter } from "strict-event-emitter-types";
 import { EventEmitter } from "events";
-import { PromptCompletionClient, PromptCompletionOptions, PromptResponse, Validation, PromptResponseValidator } from "./types";
+import { PromptResponse, Validation, PromptResponseValidator, PromptCompletionModel } from "./types";
 import { DefaultResponseValidator } from "./DefaultResponseValidator";
 import { MemoryFork } from "./MemoryFork";
 import { Colorize } from "./internals";
@@ -11,19 +11,14 @@ import { Colorize } from "./internals";
  */
 export interface AlphaWaveOptions {
     /**
-     * Client to use for completing prompts.
+     * AI model to use for completing prompts.
      */
-    client: PromptCompletionClient;
+    model: PromptCompletionModel;
 
     /**
      * Prompt to use for the conversation.
      */
     prompt: PromptSection;
-
-    /**
-     * Prompt options to use when completing the prompt.
-     */
-    prompt_options: PromptCompletionOptions;
 
     /**
      * Optional. FunctionRegistry to use when expanding prompt template sections.
@@ -97,9 +92,9 @@ export interface AlphaWaveOptions {
  */
 export interface ConfiguredAlphaWaveOptions {
     /**
-     * Client used for completing prompts.
+     * AI model used for completing prompts.
      */
-    client: PromptCompletionClient;
+    model: PromptCompletionModel;
 
     /**
      * Memory variable used for storing conversation history.
@@ -137,11 +132,6 @@ export interface ConfiguredAlphaWaveOptions {
     prompt: PromptSection;
 
     /**
-     * Prompt options used when completing the prompt.
-     */
-    prompt_options: PromptCompletionOptions;
-
-    /**
      * Tokenizer used when rendering the prompt or counting tokens.
      */
     tokenizer: Tokenizer;
@@ -170,9 +160,8 @@ export interface AlphaWaveEvents {
      * @param functions Function registry being used.
      * @param tokenizer Tokenizer being used.
      * @param prompt Prompt that's being sent.
-     * @param prompt_options Options being sent with the prompt.
      */
-    beforePrompt: (memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, prompt: PromptSection, prompt_options: PromptCompletionOptions) => void;
+    beforePrompt: (memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, prompt: PromptSection) => void;
 
     /**
      * Triggered after a prompt completion attempt was made and just before validation.
@@ -183,10 +172,9 @@ export interface AlphaWaveEvents {
      * @param functions Function registry being used.
      * @param tokenizer Tokenizer being used.
      * @param prompt Prompt that was sent.
-     * @param prompt_options Options sent with the prompt.
      * @param response Response returned by the client.
      */
-    afterPrompt: (memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, prompt: PromptSection, prompt_options: PromptCompletionOptions, response: PromptResponse) => void;
+    afterPrompt: (memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, prompt: PromptSection, response: PromptResponse) => void;
 
     /**
      * Triggered just before a successful prompt response is being validated.
@@ -360,7 +348,7 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
      * @returns A strongly typed response object.
      */
     public async completePrompt<TContent = any>(input?: string): Promise<PromptResponse<TContent>> {
-        const { client, prompt, prompt_options, memory, functions, tokenizer, validator, max_repair_attempts, history_variable, input_variable } = this.options;
+        const { model, prompt, memory, functions, tokenizer, validator, max_repair_attempts, history_variable, input_variable } = this.options;
 
         // Update/get user input
         if (input_variable) {
@@ -375,9 +363,9 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
 
         try {
             // Ask client to complete prompt
-            this.emit('beforePrompt', memory, functions, tokenizer, prompt, prompt_options);
-            const response = await client.completePrompt(memory, functions, tokenizer, prompt, prompt_options);
-            this.emit('afterPrompt', memory, functions, tokenizer, prompt, prompt_options, response);
+            this.emit('beforePrompt', memory, functions, tokenizer, prompt);
+            const response = await model.completePrompt(memory, functions, tokenizer, prompt);
+            this.emit('afterPrompt', memory, functions, tokenizer, prompt, response);
             if (response.status !== 'success') {
                 return response;
             }
@@ -481,7 +469,7 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
      * @private
      */
     private async repairResponse(fork: MemoryFork, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse, validation: Validation, remaining_attempts: number): Promise<PromptResponse> {
-        const { client, prompt, prompt_options, validator } = this.options;
+        const { model, prompt, validator } = this.options;
 
         // Add response and feedback to repair history
         const feedback = validation.feedback ?? 'The response was invalid. Try another strategy.';
@@ -500,9 +488,9 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
         }
 
         // Ask client to complete prompt
-        this.emit('beforePrompt', fork, functions, tokenizer, prompt, prompt_options);
-        const repairResponse = await client.completePrompt(fork, functions, tokenizer, repairPrompt, prompt_options);
-        this.emit('afterPrompt', fork, functions, tokenizer, prompt, prompt_options, repairResponse);
+        this.emit('beforePrompt', fork, functions, tokenizer, prompt);
+        const repairResponse = await model.completePrompt(fork, functions, tokenizer, repairPrompt);
+        this.emit('afterPrompt', fork, functions, tokenizer, prompt, repairResponse);
         if (repairResponse.status !== 'success') {
             return repairResponse;
         }

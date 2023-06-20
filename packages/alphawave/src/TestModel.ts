@@ -1,10 +1,10 @@
 import { Message, PromptFunctions, PromptMemory, PromptSection, Tokenizer } from "promptrix";
-import { PromptCompletionClient, PromptCompletionOptions, PromptResponse, PromptResponseStatus } from "./types";
+import { PromptCompletionModel, PromptResponse, PromptResponseStatus } from "./types";
 
 /**
- * A test client that can be used to test the prompt completion system.
+ * A test model that can be used to test the prompt completion system.
  */
-export class TestClient implements PromptCompletionClient {
+export class TestModel implements PromptCompletionModel {
     /**
      *
      * @param status Optional. Status of the prompt response. Defaults to `success`.
@@ -35,7 +35,7 @@ export class TestClient implements PromptCompletionClient {
      * @param prompt_options Options for completing the prompt.
      * @returns A `PromptResponse` with the status and message.
      */
-    public async completePrompt(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, prompt: PromptSection, options: PromptCompletionOptions): Promise<PromptResponse> {
+    public async completePrompt(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, prompt: PromptSection): Promise<PromptResponse> {
         return { status: this.status, message: this.response };
     }
 }

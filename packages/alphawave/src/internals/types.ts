@@ -6,11 +6,12 @@
  * Licensed under the MIT License.
  */
 
+import { Schema } from "jsonschema";
+
 /**
  * @private
  */
 export interface CreateCompletionRequest {
-    model: string;
     prompt?: CreateCompletionRequestPrompt | null;
     suffix?: string | null;
     max_tokens?: number | null;
@@ -26,6 +27,13 @@ export interface CreateCompletionRequest {
     best_of?: number | null;
     logit_bias?: object | null;
     user?: string;
+}
+
+/**
+ * @private
+ */
+export interface OpenAICreateCompletionRequest extends CreateCompletionRequest {
+    model: string;
 }
 
 /**
@@ -73,8 +81,9 @@ export interface CreateCompletionResponseUsage {
  * @private
  */
 export interface CreateChatCompletionRequest {
-    model: string;
     messages: Array<ChatCompletionRequestMessage>;
+    functions?: Array<ChatCompletionFunctions>;
+    function_call?: CreateChatCompletionRequestFunctionCall;
     temperature?: number | null;
     top_p?: number | null;
     n?: number | null;
@@ -88,12 +97,58 @@ export interface CreateChatCompletionRequest {
 }
 
 /**
+ *
+ */
+export interface ChatCompletionFunctions {
+    /**
+     * Name of the function to be called.
+     * @remarks
+     * Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64.
+     */
+    name: string;
+
+    /**
+     * Optional. Description of what the function does.
+     */
+    description?: string;
+
+    /**
+     * Optional. Parameters the functions accepts, described as a JSON Schema object.
+     * @remarks
+     * See the [guide](/docs/guides/gpt/function-calling) for examples, and the
+     * [JSON Schema reference](https://json-schema.org/understanding-json-schema/) for documentation
+     * about the format.
+     */
+    parameters?: Schema;
+}
+
+/**
+ * @private
+ */
+export declare type CreateChatCompletionRequestFunctionCall = CreateChatCompletionRequestFunctionCallOneOf | string;
+
+/**
+ * @private
+ */
+export interface CreateChatCompletionRequestFunctionCallOneOf {
+    'name': string;
+}
+
+/**
+ * @private
+ */
+export interface OpenAICreateChatCompletionRequest extends CreateChatCompletionRequest {
+    model: string;
+}
+
+/**
  * @private
  */
 export interface ChatCompletionRequestMessage {
     role: 'system' | 'user' | 'assistant';
     content: string;
     name?: string;
+    function_call?: ChatCompletionRequestMessageFunctionCall;
 }
 
 /**
@@ -122,7 +177,16 @@ export interface CreateChatCompletionResponseChoicesInner {
  */
 export interface ChatCompletionResponseMessage {
     role: 'system' | 'user' | 'assistant';
-    content: string;
+    content: string|null;
+    function_call?: ChatCompletionRequestMessageFunctionCall;
+}
+
+/**
+ * @private
+ */
+export interface ChatCompletionRequestMessageFunctionCall {
+    'name'?: string;
+    'arguments'?: string;
 }
 
 /**
@@ -181,9 +245,15 @@ export interface CreateModerationResponseResultsInnerCategoryScores {
  * @private
  */
 export interface CreateEmbeddingRequest {
-    model: string;
     input: CreateEmbeddingRequestInput;
     user?: string;
+}
+
+/**
+ * @private
+ */
+export interface OpenAICreateEmbeddingRequest extends CreateEmbeddingRequest {
+    model: string;
 }
 
 /**

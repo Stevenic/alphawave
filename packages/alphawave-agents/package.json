@@ -2,7 +2,7 @@
     "name": "alphawave-agents",
     "author": "Steven Ickman",
     "description": "A agent framework built on top of AlphaWave.",
-    "version": "0.5.1",
+    "version": "0.6.0",
     "license": "MIT",
     "keywords": [
         "ai",
@@ -25,12 +25,12 @@
         }
     },
     "dependencies": {
-        "alphawave": "0.5.1",
-        "alphawave-langchain": "0.5.1",
+        "alphawave": "0.6.0",
+        "alphawave-langchain": "0.6.0",
         "cheerio": "^1.0.0-rc.12",
         "jsonschema": "1.4.1",
         "langchain": "^0.0.92",
-        "promptrix": "^0.3.1",
+        "promptrix": "^0.4.0",
         "strict-event-emitter-types": "^2.0.0",
         "turndown": "^7.1.2",
         "uuid": "^9.0.0"

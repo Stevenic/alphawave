@@ -787,6 +787,11 @@
   resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-9.0.1.tgz#98586dc36aee8dacc98cc396dbca8d0429647aa6"
   integrity sha512-rFT3ak0/2trgvp4yYZo5iKFEPsET7vKydKF+VRCxlQ9bpheehyAJH89dAkaLEq/j/RZXJIqcgsmPJKUP1Z28HA==
 
+"@types/uuid@^9.0.1":
+  version "9.0.2"
+  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-9.0.2.tgz#ede1d1b1e451548d44919dc226253e32a6952c4b"
+  integrity sha512-kNnC1GFBLuhImSnV7w4njQkUiJi0ZXUycu1rUaouPqiKlXkh77JKgdRnTAp1x5eBwcIwbtI+3otwzuIDEuDoxQ==
+
 "@types/websocket@^1.0.3":
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/@types/websocket/-/websocket-1.0.5.tgz#3fb80ed8e07f88e51961211cd3682a3a4a81569c"
@@ -868,6 +873,30 @@ aggregate-error@^3.0.0:
   dependencies:
     clean-stack "^2.0.0"
     indent-string "^4.0.0"
+
+alphawave-agents@~0.5.0, alphawave-agents@~0.5.1:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/alphawave-agents/-/alphawave-agents-0.5.1.tgz#6d12b6aa40be19397460b800d856925192683e53"
+  integrity sha512-QktvJN8vmpHxLRCNBc71nEYRHhPwtu8cgR8TDiDJKOuwUNUyRk2SCFsRA/gn+zKVt/AlMI4PIkyGtVmcXjnOfg==
+  dependencies:
+    alphawave "0.5.1"
+    jsonschema "1.4.1"
+    promptrix "^0.3.0"
+    strict-event-emitter-types "^2.0.0"
+    uuid "^9.0.0"
+
+alphawave@0.5.1, alphawave@~0.5.0, alphawave@~0.5.1:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/alphawave/-/alphawave-0.5.1.tgz#45e41a9e117134ff4f1cd86fa7cef38b1c3afcc7"
+  integrity sha512-5Sdiz28eCTIGrlQxSL5SNlj8frKmdB/Ho6L/3HthVBEA8prjV1UDR+E1qBIg2EUmxBgxPhzmkct/f6ubfH7kmA==
+  dependencies:
+    axios "^1.3.4"
+    gpt-3-encoder "1.1.4"
+    json-colorizer "^2.2.2"
+    jsonschema "1.4.1"
+    promptrix "^0.3.0"
+    strict-event-emitter-types "^2.0.0"
+    yaml "2.3.1"
 
 ansi-align@^2.0.0:
   version "2.0.0"
@@ -1454,6 +1483,11 @@ call-bind@^1.0.0, call-bind@^1.0.2:
     function-bind "^1.1.1"
     get-intrinsic "^1.0.2"
 
+camelcase@6, camelcase@^6.0.0:
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-6.3.0.tgz#5685b95eb209ac9c0c177467778c9c84df58ba9a"
+  integrity sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==
+
 camelcase@^4.0.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-4.1.0.tgz#d545635be1e33c542649c69173e5de6acfae34dd"
@@ -1463,11 +1497,6 @@ camelcase@^5.0.0, camelcase@^5.3.1:
   version "5.3.1"
   resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-5.3.1.tgz#e3c9b31569e106811df242f715725a1f4c494320"
   integrity sha512-L28STB170nwWS63UjtlEOE3dldQApaJXZkOI1uMFfzf3rRuPegHaHesyee+YxQ+W6SvRDQV6UrdOdRiR153wJg==
-
-camelcase@^6.0.0:
-  version "6.3.0"
-  resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-6.3.0.tgz#5685b95eb209ac9c0c177467778c9c84df58ba9a"
-  integrity sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==
 
 caniuse-lite@^1.0.30001449:
   version "1.0.30001489"
@@ -1677,6 +1706,11 @@ combined-stream@^1.0.6, combined-stream@^1.0.8:
   dependencies:
     delayed-stream "~1.0.0"
 
+commander@^10.0.1:
+  version "10.0.1"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-10.0.1.tgz#881ee46b4f77d1c1dccc5823433aa39b022cbe06"
+  integrity sha512-y4Mg2tXshplEbSGzx7amzPwKKOCGuoSRP/CjEdwwk0FOGlUbq6lKuoyDZTNZkmxHdJtp54hdfY/JUrdL7Xfdug==
+
 commander@^2.12.1:
   version "2.20.3"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.20.3.tgz#fd485e84c03eb4881c20722ba48035e8531aeb33"
@@ -1882,6 +1916,11 @@ debug@^3.2.6:
   integrity sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==
   dependencies:
     ms "^2.1.1"
+
+decamelize@5:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/decamelize/-/decamelize-5.0.1.tgz#db11a92e58c741ef339fb0a2868d8a06a9a7b1e9"
+  integrity sha512-VfxadyCECXgQlkoEAjeghAr5gY3Hf+IKjKb+X8tGVDtveCjN+USwprd2q3QXBR9T1+x2DG0XZF5/w+7HAtSaXA==
 
 decamelize@^1.2.0:
   version "1.2.0"
@@ -3671,6 +3710,42 @@ langchain@^0.0.92:
     zod "^3.21.4"
     zod-to-json-schema "^3.20.4"
 
+langchain@^0.0.95:
+  version "0.0.95"
+  resolved "https://registry.yarnpkg.com/langchain/-/langchain-0.0.95.tgz#500238ae9312f43a5f9dd6c20bf02c2c826ade80"
+  integrity sha512-UjOr1XArTTSZB4uCayKzQs69pCahHCq/CVTc66fAymCD5uKerh8AvcemPxgRpTi8tgcdhY76j//c0e06l5aFdA==
+  dependencies:
+    "@anthropic-ai/sdk" "^0.4.3"
+    ansi-styles "^5.0.0"
+    binary-extensions "^2.2.0"
+    camelcase "6"
+    decamelize "5"
+    expr-eval "^2.0.2"
+    flat "^5.0.2"
+    js-tiktoken "^1.0.6"
+    jsonpointer "^5.0.1"
+    langchainplus-sdk "^0.0.11"
+    ml-distance "^4.0.0"
+    object-hash "^3.0.0"
+    openai "^3.3.0"
+    p-queue "^6.6.2"
+    p-retry "4"
+    uuid "^9.0.0"
+    yaml "^2.2.1"
+    zod "^3.21.4"
+    zod-to-json-schema "^3.20.4"
+
+langchainplus-sdk@^0.0.11:
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/langchainplus-sdk/-/langchainplus-sdk-0.0.11.tgz#bf833c183520983c229ef50071c17c1e3399909d"
+  integrity sha512-bEovYVJZq88LYznDfK+ohNVd0lqQ1DMgE/A/8ZkqsiyaRuEjvIQj4PLc0VQ8htWPBljrfTu8oS7g+SGWYTZfNw==
+  dependencies:
+    "@types/uuid" "^9.0.1"
+    commander "^10.0.1"
+    p-queue "^6.6.2"
+    p-retry "4"
+    uuid "^9.0.0"
+
 latest-version@^3.0.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/latest-version/-/latest-version-3.1.0.tgz#a205383fea322b33b5ae3b18abee0dc2f356ee15"
@@ -4383,6 +4458,14 @@ openai@^3.2.0:
     axios "^0.26.0"
     form-data "^4.0.0"
 
+openai@^3.3.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/openai/-/openai-3.3.0.tgz#a6408016ad0945738e1febf43f2fccca83a3f532"
+  integrity sha512-uqxI/Au+aPRnsaQRe8CojU0eCR7I0mBiKjD3sNMzY6DaC1ZVrc85u98mtJW6voDug8fgGN+DIZmTDxTthxb7dQ==
+  dependencies:
+    axios "^0.26.0"
+    form-data "^4.0.0"
+
 p-finally@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/p-finally/-/p-finally-1.0.0.tgz#3fbcfb15b899a44123b34b6dcc18b724336a2cae"
@@ -4673,10 +4756,26 @@ process@^0.11.10:
   resolved "https://registry.yarnpkg.com/process/-/process-0.11.10.tgz#7332300e840161bda3e69a1d1d91a7d4bc16f182"
   integrity sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==
 
-promptrix@^0.3.1:
+promptrix@^0.3.0, promptrix@^0.3.1:
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/promptrix/-/promptrix-0.3.1.tgz#f3a1aae9531369761e256b4cf4b6a83fab1da5d6"
   integrity sha512-VuRyJpx0D1TR72766hU/lqKq+TrWNKVNDb8geEJ1xZkvSa3m8R7BUcDydI3gh7S2Y3S3bIQpPkKr5YGy2aIcmQ==
+  dependencies:
+    gpt-3-encoder "1.1.4"
+    yaml "^1.10.0"
+
+promptrix@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/promptrix/-/promptrix-0.4.0.tgz#ac53b06392b235b331b06aea7774a6c595f0a7b9"
+  integrity sha512-zW61EoiLwzcbYizh29+GnpmJVpWccdsFhIqq5E/KiRHO7jzTr5zUPUOs/xyj+cVodKDu1SmqcktXcTrojQ5GlQ==
+  dependencies:
+    gpt-3-encoder "1.1.4"
+    yaml "^1.10.0"
+
+promptrix@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/promptrix/-/promptrix-0.4.1.tgz#38ef85addd3de12eb6dfae0ddc7c542efc699f4a"
+  integrity sha512-hO7Q3ZaOulgLQL4crCMiCIuDkz/j0SikQdIoDeFaNRUQAEj9QV5BGtb10yKQKODVv/ePW1aYZftrxnuqQNTx2Q==
   dependencies:
     gpt-3-encoder "1.1.4"
     yaml "^1.10.0"

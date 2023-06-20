@@ -1,4 +1,4 @@
-import { OpenAIClient, AlphaWave, JSONResponseValidator } from "alphawave";
+import { OpenAIModel, AlphaWave, JSONResponseValidator } from "alphawave";
 import { Prompt, SystemMessage, ConversationHistory, UserMessage, Message } from "promptrix";
 import { config } from "dotenv";
 import * as path from "path";
@@ -7,11 +7,6 @@ import * as readline from "readline";
 // Read in .env file.
 const ENV_FILE = path.join(__dirname, '..', '.env');
 config({ path: ENV_FILE });
-
-// Create an OpenAI or AzureOpenAI client
-const client = new OpenAIClient({
-    apiKey: process.env.OpenAIKey!
-});
 
 // Define expected response schema and create a validator
 interface ResponseSchema {
@@ -28,9 +23,19 @@ const validator = new JSONResponseValidator({
     required: ['answer', 'sentiment']
 });
 
+// Create an instance of a model
+const model = new OpenAIModel({
+    apiKey: process.env.OpenAIKey!,
+    completion_type: 'chat',
+    model: 'gpt-3.5-turbo',
+    temperature: 0.9,
+    max_input_tokens: 2000,
+    max_tokens: 1000,
+});
+
 // Create a wave
 const wave = new AlphaWave({
-    client,
+    model,
     prompt: new Prompt([
         new SystemMessage([
             `Answers the user but also analyze the sentiment of their message.`,
@@ -40,13 +45,6 @@ const wave = new AlphaWave({
         new ConversationHistory('history'),
         new UserMessage('{{$input}}', 200)
     ]),
-    prompt_options: {
-        completion_type: 'chat',
-        model: 'gpt-3.5-turbo',
-        temperature: 0.9,
-        max_input_tokens: 2000,
-        max_tokens: 1000,
-    },
     validator,
     logRepairs: true
 });
@@ -76,10 +74,10 @@ async function chat(botMessage: ResponseSchema|undefined) {
             process.exit();
         } else {
             // Route users message to wave
-            const result = await wave.completePrompt(input);
+            const result = await wave.completePrompt<ResponseSchema>(input);
             switch (result.status) {
                 case 'success':
-                    await chat((result.message as Message<ResponseSchema>).content);
+                    await chat((result.message as any).content);
                     break;
                 default:
                     if (result.message) {
