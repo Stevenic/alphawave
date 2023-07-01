@@ -82,7 +82,11 @@ export class FunctionResponseValidator implements PromptResponseValidator {
             // Validate arguments
             const functionDef = this._functions.get(function_call.name);
             if (functionDef?.parameters) {
-                const validator = new JSONResponseValidator(functionDef.parameters, `No arguments were returned for the function named "${function_call.name}". Return the arguments as a valid JSON object.`);
+                const validator = new JSONResponseValidator(
+                    functionDef.parameters,
+                    `No arguments were sent with function call. Call the "${function_call.name}" with required arguments as a valid JSON object.`,
+                    `The function arguments had errors. Apply these fixes and call "${function_call.name}" function again:`
+                );
                 const message: Message = { role: 'assistant', content: function_call.arguments ?? '{}' };
                 const result = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message }, remaining_attempts);
                 if (!result.valid) {

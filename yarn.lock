@@ -874,6 +874,37 @@ aggregate-error@^3.0.0:
     clean-stack "^2.0.0"
     indent-string "^4.0.0"
 
+alphawave-langchain@0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/alphawave-langchain/-/alphawave-langchain-0.6.0.tgz#071a1b7f2545e34474c6638e4e66cf86b1c9bbd4"
+  integrity sha512-M4U46kxhf0bAqCRsWuvDsnzXSm/kV+2atQ3/TUuy3wYg1SkE0VtYUnEjSr831HfmXdrYl+ETXnlDVo6NGGKKaA==
+  dependencies:
+    "@pinecone-database/pinecone" "^0.1.6"
+    "@supabase/postgrest-js" "^1.7.0"
+    "@supabase/supabase-js" "^2.24.0"
+    alphawave "0.6.0"
+    chromadb "^1.5.2"
+    hnswlib-node "^1.4.2"
+    jsonschema "1.4.1"
+    langchain "^0.0.95"
+    promptrix "^0.4.2"
+    strict-event-emitter-types "^2.0.0"
+    typeorm "^0.3.16"
+    uuid "^9.0.0"
+
+alphawave@0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/alphawave/-/alphawave-0.6.0.tgz#4fd54d9b77fc7ec9be3bf828c52681c1fe854baa"
+  integrity sha512-2nUoE07LmMp6V4zStwyvpgfJdc75uYD3a5FwRhMCY7sPqCyWatkjtRdJfxsOoIT2A1YiHEGxJJ60a85JIiPRRg==
+  dependencies:
+    axios "^1.3.4"
+    gpt-3-encoder "1.1.4"
+    json-colorizer "^2.2.2"
+    jsonschema "1.4.1"
+    promptrix "^0.4.2"
+    strict-event-emitter-types "^2.0.0"
+    yaml "2.3.1"
+
 ansi-align@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ansi-align/-/ansi-align-2.0.0.tgz#c36aeccba563b89ceb556f3690f0b1d9e3547f7f"

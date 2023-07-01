@@ -2,7 +2,7 @@
     "name": "alphawave-langchain",
     "author": "Steven Ickman",
     "description": "Utility classes for integrating AlphaWave and LangChain.",
-    "version": "0.6.0",
+    "version": "0.6.1",
     "license": "MIT",
     "keywords": [
         "ai",

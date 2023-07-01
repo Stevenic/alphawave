@@ -120,4 +120,48 @@ export class Response {
             return undefined;
         }
     }
+
+    /**
+     * Removes any empty fields from an object.
+     *
+     * @remarks
+     * Empty fields include `null`, `undefined`, `[]`, `{}`, and `""`.
+     * @param obj The object to clean.
+     * @returns A cleaned object.
+     */
+    public static removeEmptyValuesFromObject(obj: Record<string, any>): Record<string, any> {
+        const result: Record<string, any> = {};
+        for (const key in obj) {
+            const value = obj[key];
+            const type = typeof value;
+            switch (type) {
+                case 'string':
+                    if (value.length == 0) {
+                        continue;
+                    }
+                    break;
+                case 'object':
+                    if (value == null) {
+                        continue;
+                    } else if (Array.isArray(value)) {
+                        if (value.length == 0) {
+                            continue;
+                        }
+                    } else if (typeof (value as Date).toISOString !== 'function') {
+                        const cleaned = this.removeEmptyValuesFromObject(value);
+                        if (Object.keys(cleaned).length == 0) {
+                            continue;
+                        }
+
+                    }
+                    break;
+                case 'undefined':
+                    continue;
+            }
+
+            result[key] = value;
+        }
+
+        return result;
+    }
 }

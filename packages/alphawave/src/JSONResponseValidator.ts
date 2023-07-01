@@ -8,13 +8,23 @@ import { Response } from "./Response";
  * @template TContent Optional. Type of the content of the message. Defaults to `Record<string, any>`.
  */
 export class JSONResponseValidator<TContent = Record<string, any>> implements PromptResponseValidator {
+
     /**
      * Creates a new `JSONResponseValidator` instance.
      * @param schema Optional. JSON schema to validate the response against.
-     * @param missingJsonFeedback Optional. Feedback to give when no JSON is returned. Defaults to `No valid JSON objects were found in the response. Return a valid JSON object.`
+     * @param missingJsonFeedback Optional. Custom feedback to give when no JSON is returned.
+     * @param errorFeedback Optional. Custom feedback to give when an error is detected.
      */
-    public constructor(private schema?: Schema, private missingJsonFeedback: string = 'No valid JSON objects were found in the response. Return a valid JSON object.') {
+    public constructor(schema?: Schema, missingJsonFeedback?: string, errorFeedback?: string, instanceName?: string) {
+        this.schema = schema;
+        this.missingJsonFeedback = missingJsonFeedback ?? 'No valid JSON objects were found in the response. Return a valid JSON object.';
+        this.errorFeedback = errorFeedback ?? 'The JSON returned had errors. Apply these fixes:';
     }
+
+    public readonly errorFeedback: string;
+    public readonly instanceName?: string;
+    public readonly missingJsonFeedback: string;
+    public readonly schema?: Schema;
 
     /**
      * Validates the response.
@@ -44,7 +54,7 @@ export class JSONResponseValidator<TContent = Record<string, any>> implements Pr
             let errors: ValidationError[] | undefined;
             const validator = new Validator();
             for (let i = parsed.length - 1; i >= 0; i--) {
-                const obj = parsed[i];
+                const obj = Response.removeEmptyValuesFromObject(parsed[i]);
                 const result = validator.validate(obj, this.schema);
                 if (result.valid) {
                     return Promise.resolve({
@@ -60,7 +70,7 @@ export class JSONResponseValidator<TContent = Record<string, any>> implements Pr
             return Promise.resolve({
                 type: 'Validation',
                 valid: false,
-                feedback: `The JSON returned had errors. Apply these fixes:\n${errors!.map(e => this.getErrorFix(e)).join('\n')}`
+                feedback: `${this.errorFeedback}\n${errors!.map(e => this.getErrorFix(e)).join('\n')}`
             });
         } else {
             // Return the last object
