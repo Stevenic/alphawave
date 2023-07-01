@@ -1,5 +1,5 @@
 import { Agent } from "alphawave-agents";
-import { OpenAIClient, AzureOpenAIClient, PromptCompletionClient } from "alphawave";
+import { OpenAIModel } from "alphawave";
 import { CharacterCommand, EndSceneCommand, NarrateCommand } from "./commands";
 import { config } from "dotenv";
 import * as path from "path";
@@ -9,9 +9,14 @@ import * as readline from "readline";
 const ENV_FILE = path.join(__dirname, '..', '.env');
 config({ path: ENV_FILE });
 
-// Create an OpenAI or AzureOpenAI client
-const client = new OpenAIClient({
-    apiKey: process.env.OpenAIKey!
+// Create an OpenAI or AzureOpenAI model
+const model = new OpenAIModel({
+    apiKey: process.env.OpenAIKey!,
+    completion_type: 'chat',
+    model: 'gpt-3.5-turbo',
+    temperature: 0.0,
+    max_input_tokens: 3000,
+    max_tokens: 800,
 });
 
 const initialPrompt = [
@@ -30,7 +35,7 @@ const initialPrompt = [
 
 // Create an agent
 const agent = new Agent({
-    client,
+    model,
     prompt: [
         `You are William Shakespeare narrating the play Macbeth.`,
         `Ask the user where they would like to start their story from, set the scene through narration, and facilitate the dialog between the characters.`,
@@ -39,27 +44,20 @@ const agent = new Agent({
         `\ncontext:`,
         `\tperformance: {{$performance}}`,
     ],
-    prompt_options: {
-        completion_type: 'chat',
-        model: 'gpt-3.5-turbo',
-        temperature: 0.0,
-        max_input_tokens: 3000,
-        max_tokens: 800,
-    },
-    initial_thought: {
-        "thoughts": {
-            "thought": "I want to give the user some options to choose from to start the story.",
-            "reasoning": "This will make the experience more interactive and personalized, and also help me set the scene accordingly.",
-            "plan": "- ask the user where to start the story from\n- use the narrate command to introduce the chosen scene\n- use the character commands to facilitate the dialog"
-        },
-        "command": {
-            "name": "ask",
-            "input": { "question": initialPrompt }
-        }
-    },
+    // initial_thought: {
+    //     "thoughts": {
+    //         "thought": "I want to give the user some options to choose from to start the story.",
+    //         "reasoning": "This will make the experience more interactive and personalized, and also help me set the scene accordingly.",
+    //         "plan": "- ask the user where to start the story from\n- use the narrate command to introduce the chosen scene\n- use the character commands to facilitate the dialog"
+    //     },
+    //     "command": {
+    //         "name": "ask",
+    //         "input": { "question": initialPrompt }
+    //     }
+    // },
     step_delay: 5000,
     max_steps: 50,
-    // logRepairs: true,
+    logRepairs: true,
 });
 
 // Add core commands to the agent
@@ -68,12 +66,12 @@ agent.addCommand(new EndSceneCommand());
 
 // Define main characters
 ['Macbeth','Lady Macbeth','Banquo','King Duncan','Macduff','First Witch', 'Second Witch', 'Third Witch','Malcolm','Fleance','Hecate','Donalbain','Lady Macduff','Captain']
-.forEach(name => agent.addCommand(new CharacterCommand(client, 'gpt-3.5-turbo', name)));
+.forEach(name => agent.addCommand(new CharacterCommand(model, name)));
 
 // Define an additional 'extra' character to play minor roles
 // - this character can end up being a bit ambiguous to the model but leaving it in because it
 //   provides a reliable hallucination.
-agent.addCommand(new CharacterCommand(client, 'gpt-3.5-turbo', 'extra', 'use for minor characters or any missing commands'));
+agent.addCommand(new CharacterCommand(model, 'extra', 'use for minor characters or any missing commands'));
 
 // Listen for new thoughts
 agent.events.on('newThought', (thought) => {

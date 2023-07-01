@@ -134,7 +134,7 @@ describe("PlanValidator", () => {
             const validator = new PlanValidator();
             const result = await validator.validateResponse(memory, functions, tokenizer, createResponse(emptyPlan), 3);
             assert.equal(result.valid, false);
-            assert.equal(result.feedback, `The JSON returned had the following errors:\n"instance.commands" does not meet minimum length of 1\n\nReturn a JSON object that fixes these errors.`);
+            assert.equal(result.feedback, `The JSON returned had errors. Apply these fixes:\n"instance.commands" does not meet minimum length of 1. Fix that`);
         });
 
         it("should pass a response with a valid plan and a valid action", async () => {

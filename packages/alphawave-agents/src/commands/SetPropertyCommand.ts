@@ -1,6 +1,5 @@
 import { PromptMemory, PromptFunctions, Tokenizer } from "promptrix";
 import { SchemaBasedCommand, CommandSchema } from "../SchemaBasedCommand";
-import { TaskResponse } from "../types";
 
 const schema: CommandSchema = {
     type: "object",

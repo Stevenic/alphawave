@@ -1,5 +1,5 @@
-import { Agent, AskCommand, FinalAnswerCommand, BingSearchCommand, WebBrowserCommand } from "alphawave-agents";
-import { OpenAIClient } from "alphawave";
+import { Agent, AskCommand, FinalAnswerCommand, BingSearchCommand } from "alphawave-agents";
+import { OpenAIModel, OpenAIEmbeddings } from "alphawave";
 import { config } from "dotenv";
 import * as path from "path";
 import * as readline from "readline";
@@ -8,28 +8,32 @@ import * as readline from "readline";
 const ENV_FILE = path.join(__dirname, '..', '.env');
 config({ path: ENV_FILE });
 
-// Create an OpenAI or AzureOpenAI client
-const client = new OpenAIClient({
+// Create an OpenAI or AzureOpenAI model and embeddings
+const model = new OpenAIModel({
     apiKey: process.env.OpenAIKey!,
-    //logRequests: true,
+    completion_type: 'chat',
+    model: 'gpt-3.5-turbo',
+    temperature: 0.0,
+    max_input_tokens: 2200,
+    max_tokens: 800,
+    // logRequests: true,
+});
+
+const embeddings = new OpenAIEmbeddings({
+    apiKey: process.env.OpenAIKey!,
+    model: 'text-embedding-ada-002',
+    // logRequests: true,
 });
 
 // Create an agent
 const agent = new Agent({
-    client,
+    model,
     prompt: [
         `Use the ask command to prompt the user for their question.`,
         `Send a query to the bingSearch command to find the users answer.`,
         `Always use bingSearch to verify that your answers are accurate.`,
         `When showing lists to the user, show a bulleted list.`,
     ],
-    prompt_options: {
-        completion_type: 'chat',
-        model: 'gpt-3.5-turbo',
-        temperature: 0.0,
-        max_input_tokens: 2200,
-        max_tokens: 800,
-    },
     initial_thought: {
         "thoughts": {
             "thought":"I need to ask the user what they want to know",
@@ -51,16 +55,9 @@ agent.addCommand(new FinalAnswerCommand());
 agent.addCommand(new BingSearchCommand({
     apiKey: process.env.BingAPIKey!,
     deep_search: {
-        prompt_client: client,
-        prompt_options: {
-            completion_type: 'chat',
-            model: 'gpt-3.5-turbo',
-            temperature: 0.0,
-            max_input_tokens: 2200,
-            max_tokens: 800,
-        },
-        embeddings_client: client,
-        embeddings_model: 'text-embedding-ada-002',
+        model,
+        embeddings,
+        max_input_tokens: 2200,
         max_search_time: 60000,
         parse_mode: 'text',
         log_activity: true,

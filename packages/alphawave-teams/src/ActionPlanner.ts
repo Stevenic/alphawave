@@ -12,15 +12,25 @@ import {
     AIHistoryOptions
 } from '@microsoft/teams-ai';
 import { TurnContext } from 'botbuilder';
-import { AlphaWave, AlphaWaveOptions,PromptCompletionClient, PromptCompletionOptions, PromptResponse, PromptResponseValidator, Response } from "alphawave";
+import {
+    AlphaWave,
+    AlphaWaveOptions,
+    AzureOpenAIModelOptions,
+    BaseOpenAIModelOptions,
+    OpenAIModel,
+    OpenAIModelOptions,
+    PromptCompletionModel,
+    PromptResponse,
+    PromptResponseValidator,
+    Response
+} from "alphawave";
 import { Message, TextSection, Tokenizer, Utilities, GPT3Tokenizer, UserMessage, PromptSection } from "promptrix";
 import { StateAsMemory } from './StateAsMemory';
 import { Prompt } from 'promptrix';
 import { ConversationHistory } from 'promptrix';
 
 export interface ActionPlannerOptions {
-    client: PromptCompletionClient;
-    prompt_options: PromptCompletionOptions;
+    model: PromptCompletionModel;
     history_variable?: string;
     input_variable?: string;
     max_history_messages?: number;
@@ -42,8 +52,8 @@ export class ActionPlanner<TState extends TurnState = DefaultTurnState> implemen
         this._options = Object.assign({}, options);
     }
 
-    public get client(): PromptCompletionClient {
-        return this._options.client;
+    public get model(): PromptCompletionModel {
+        return this._options.model;
     }
 
     public get options(): ActionPlannerOptions {
@@ -69,15 +79,21 @@ export class ActionPlanner<TState extends TurnState = DefaultTurnState> implemen
         const max_history_messages = historyOptions.maxTurns * 2;
         const input_variable = this._options.input_variable ?? 'temp.input';
 
-        // Create prompt options
-        const prompt_options: PromptCompletionOptions  = Object.assign({}, this._options.prompt_options, inputPrompt.config.completion as any);
-        if (Array.isArray(inputPrompt.config.default_backends)) {
-            prompt_options.model = inputPrompt.config.default_backends[0];
-            if (prompt_options.model.startsWith('gpt')) {
-                prompt_options.completion_type = 'chat';
-            } else {
-                prompt_options.completion_type = 'text';
+        // Clone model if OpenAI
+        let model = this._options.model;
+        if (model instanceof OpenAIModel) {
+            const options: BaseOpenAIModelOptions  = Object.assign({}, inputPrompt.config.completion as any);
+            if (Array.isArray(inputPrompt.config.default_backends)) {
+                const backend = inputPrompt.config.default_backends[0];
+                if (backend.startsWith('gpt')) {
+                    options.completion_type = 'chat';
+                } else {
+                    options.completion_type = 'text';
+                }
+                (options as OpenAIModelOptions).model = backend;
+                (options as AzureOpenAIModelOptions).azureDeployment = backend;
             }
+            model = model.clone(options);
         }
 
         // Create list of prompt sections
@@ -85,7 +101,7 @@ export class ActionPlanner<TState extends TurnState = DefaultTurnState> implemen
             new TextSection(inputPrompt.text, this._options.use_system_role ? 'system' : 'user'),
             new ConversationHistory(history_variable, historyOptions.maxTokens, false, historyOptions.userPrefix, historyOptions.assistantPrefix, historyOptions.lineSeparator)
         ];
-        if (historyOptions.trackHistory && prompt_options.completion_type == 'chat' && memory.has(input_variable) && memory.get(input_variable)) {
+        if (historyOptions.trackHistory && memory.has(input_variable) && memory.get(input_variable)) {
             sections.push(new UserMessage(`{{$${input_variable}}}`));
         }
 
@@ -93,7 +109,7 @@ export class ActionPlanner<TState extends TurnState = DefaultTurnState> implemen
         const prompt = new Prompt(sections);
 
         // Get validator
-        const waveOptions: AlphaWaveOptions = Object.assign({}, this._options, { memory, prompt, prompt_options, history_variable, max_history_messages, input_variable });
+        const waveOptions: AlphaWaveOptions = Object.assign({}, this._options, { memory, prompt, model, history_variable, max_history_messages, input_variable });
         const validator = this.getValidator(inputPrompt.config as ExtendedPromptTemplateConfig);
         if (validator) {
             waveOptions.validator = validator;
@@ -120,7 +136,7 @@ export class ActionPlanner<TState extends TurnState = DefaultTurnState> implemen
                 if (typeof content == 'object' && content != null) {
                     return JSON.stringify(content);
                 } else {
-                    return content.toString();
+                    return content!.toString();
                 }
             case 'error':
                 throw new Error(response!.message as string);
@@ -139,15 +155,21 @@ export class ActionPlanner<TState extends TurnState = DefaultTurnState> implemen
         const max_history_messages = historyOptions.maxTurns * 2;
         const input_variable = this._options.input_variable ?? 'temp.input';
 
-        // Create prompt options
-        const prompt_options: PromptCompletionOptions  = Object.assign({}, this._options.prompt_options, inputPrompt.config.completion as any);
-        if (Array.isArray(inputPrompt.config.default_backends)) {
-            prompt_options.model = inputPrompt.config.default_backends[0];
-            if (prompt_options.model.startsWith('gpt')) {
-                prompt_options.completion_type = 'chat';
-            } else {
-                prompt_options.completion_type = 'text';
+        // Clone model if OpenAI
+        let model = this._options.model;
+        if (model instanceof OpenAIModel) {
+            const options: BaseOpenAIModelOptions  = Object.assign({}, inputPrompt.config.completion as any);
+            if (Array.isArray(inputPrompt.config.default_backends)) {
+                const backend = inputPrompt.config.default_backends[0];
+                if (backend.startsWith('gpt')) {
+                    options.completion_type = 'chat';
+                } else {
+                    options.completion_type = 'text';
+                }
+                (options as OpenAIModelOptions).model = backend;
+                (options as AzureOpenAIModelOptions).azureDeployment = backend;
             }
+            model = model.clone(options);
         }
 
         // Create list of prompt sections
@@ -155,7 +177,7 @@ export class ActionPlanner<TState extends TurnState = DefaultTurnState> implemen
             new TextSection(inputPrompt.text, this._options.use_system_role ? 'system' : 'user'),
             new ConversationHistory(history_variable, historyOptions.maxTokens, false, historyOptions.userPrefix, historyOptions.assistantPrefix, historyOptions.lineSeparator)
         ];
-        if (historyOptions.trackHistory && prompt_options.completion_type == 'chat' && memory.has(input_variable) && memory.get(input_variable)) {
+        if (historyOptions.trackHistory  && memory.has(input_variable) && memory.get(input_variable)) {
             sections.push(new UserMessage(`{{$${input_variable}}}`));
         }
 
@@ -163,7 +185,7 @@ export class ActionPlanner<TState extends TurnState = DefaultTurnState> implemen
         const prompt = new Prompt(sections);
 
         // Get validator
-        const waveOptions: AlphaWaveOptions = Object.assign({}, this._options, { memory, prompt, prompt_options, history_variable, max_history_messages, input_variable });
+        const waveOptions: AlphaWaveOptions = Object.assign({}, this._options, { memory, prompt, model, history_variable, max_history_messages, input_variable });
         const validator = this.getValidator(inputPrompt.config as ExtendedPromptTemplateConfig);
         if (validator) {
             waveOptions.validator = validator;
@@ -186,7 +208,7 @@ export class ActionPlanner<TState extends TurnState = DefaultTurnState> implemen
         switch (response!.status) {
             case 'success':
                 const content = (response!.message as Message).content;
-                const plan: Plan|undefined = typeof content == 'object' ? content as Plan : Response.parseJSON<Plan>(content);
+                const plan: Plan|undefined = content && typeof content == 'object' ? content as Plan : Response.parseJSON<Plan>(content!);
                 if (plan && plan.type == 'plan') {
                     return plan;
                 } else {

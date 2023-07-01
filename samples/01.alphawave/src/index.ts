@@ -1,4 +1,4 @@
-import { OpenAIClient, AlphaWave } from "alphawave";
+import { OpenAIModel, AlphaWave } from "alphawave";
 import { Prompt, SystemMessage, ConversationHistory, UserMessage, Message } from "promptrix";
 import { config } from "dotenv";
 import * as path from "path";
@@ -8,26 +8,24 @@ import * as readline from "readline";
 const ENV_FILE = path.join(__dirname, '..', '.env');
 config({ path: ENV_FILE });
 
-// Create an OpenAI or AzureOpenAI client
-const client = new OpenAIClient({
-    apiKey: process.env.OpenAIKey!
+// Create an OpenAI or AzureOpenAI model
+const model = new OpenAIModel({
+    apiKey: process.env.OpenAIKey!,
+    completion_type: 'chat',
+    model: 'gpt-3.5-turbo',
+    temperature: 0.9,
+    max_input_tokens: 2000,
+    max_tokens: 1000,
 });
 
 // Create a wave
 const wave = new AlphaWave({
-    client,
+    model,
     prompt: new Prompt([
         new SystemMessage('You are an AI assistant that is friendly, kind, and helpful', 50),
         new ConversationHistory('history', 1.0),
         new UserMessage('{{$input}}', 450)
-    ]),
-    prompt_options: {
-        completion_type: 'chat',
-        model: 'gpt-3.5-turbo',
-        temperature: 0.9,
-        max_input_tokens: 2000,
-        max_tokens: 1000,
-    }
+    ])
 });
 
 // Create a readline interface object with the standard input and output streams
@@ -55,7 +53,7 @@ async function chat(botMessage: string|undefined) {
             const result = await wave.completePrompt(input);
             switch (result.status) {
                 case 'success':
-                    await chat((result.message as Message).content);
+                    await chat((result.message as Message).content!);
                     break;
                 default:
                     if (result.message) {

@@ -1,8 +1,8 @@
 import { strict as assert } from "assert";
 import { Message, FunctionRegistry, GPT3Tokenizer, Prompt, PromptFunctions, PromptMemory, Tokenizer, VolatileMemory } from "promptrix";
-import { PromptCompletionOptions, PromptResponse, PromptResponseValidator, Validation } from "./types";
+import { PromptResponse, PromptResponseValidator, Validation } from "./types";
 import { DefaultResponseValidator } from "./DefaultResponseValidator";
-import { TestClient } from "./TestClient";
+import { TestModel } from "./TestModel";
 import { AlphaWave } from "./AlphaWave";
 
 class TestValidator implements PromptResponseValidator {
@@ -12,7 +12,7 @@ class TestValidator implements PromptResponseValidator {
     public clientErrorDuringRepair: boolean = false;
     public returnContent: boolean = false;
 
-    public constructor(public client: TestClient) { }
+    public constructor(public model: TestModel) { }
 
     public validateResponse(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse, remaining_attempts: number): Promise<Validation> {
         if (this.exception) {
@@ -22,10 +22,10 @@ class TestValidator implements PromptResponseValidator {
         }
 
         if (this.clientErrorDuringRepair && this.repairAttempts == 1) {
-            // Simulate a client error on next turn
+            // Simulate a model error on next turn
             this.clientErrorDuringRepair = false;
-            this.client.status = 'error';
-            this.client.response = 'Some Error';
+            this.model.status = 'error';
+            this.model.response = 'Some Error';
             return Promise.resolve({ type: 'Validation', valid: false, feedback: this.feedback });
         } else if (this.repairAttempts > 0) {
             this.repairAttempts--;
@@ -40,22 +40,20 @@ class TestValidator implements PromptResponseValidator {
 }
 
 describe("AlphaWave", () => {
-    const client = new TestClient('success', { role: 'assistant', content: 'Hello' });
+    const model = new TestModel('success', { role: 'assistant', content: 'Hello' });
     const prompt = new Prompt([]);
-    const prompt_options: PromptCompletionOptions = { completion_type: 'chat', model: 'test' };
     const memory = new VolatileMemory();
     const functions = new FunctionRegistry();
     const tokenizer = new GPT3Tokenizer();
-    const validator = new TestValidator(client);
+    const validator = new TestValidator(model);
 
     describe("constructor", () => {
         it("should create a AlphaWave and use default values", () => {
-            const wave = new AlphaWave({ client, prompt, prompt_options });
+            const wave = new AlphaWave({ model, prompt });
             assert.notEqual(wave, undefined);
             assert.notEqual(wave.options, undefined);
-            assert.equal(wave.options.client, client);
+            assert.equal(wave.options.model, model);
             assert.equal(wave.options.prompt, prompt);
-            assert.equal(wave.options.prompt_options, prompt_options);
             assert.equal(wave.options.memory instanceof VolatileMemory, true);
             assert.equal(wave.options.functions instanceof FunctionRegistry, true);
             assert.equal(wave.options.tokenizer instanceof GPT3Tokenizer, true);
@@ -67,12 +65,11 @@ describe("AlphaWave", () => {
         });
 
         it("should create a AlphaWave and use provided values", () => {
-            const wave = new AlphaWave({ client, prompt, prompt_options, memory, functions, tokenizer, validator, history_variable: 'test_history', input_variable: 'test_input', max_repair_attempts: 5, max_history_messages: 20 });
+            const wave = new AlphaWave({ model, prompt, memory, functions, tokenizer, validator, history_variable: 'test_history', input_variable: 'test_input', max_repair_attempts: 5, max_history_messages: 20 });
             assert.notEqual(wave, undefined);
             assert.notEqual(wave.options, undefined);
-            assert.equal(wave.options.client, client);
+            assert.equal(wave.options.model, model);
             assert.equal(wave.options.prompt, prompt);
-            assert.equal(wave.options.prompt_options, prompt_options);
             assert.equal(wave.options.memory, memory);
             assert.equal(wave.options.functions, functions);
             assert.equal(wave.options.tokenizer, tokenizer);
@@ -84,7 +81,7 @@ describe("AlphaWave", () => {
         });
     });
 
-    const wave = new AlphaWave({ client, prompt, prompt_options, memory, functions, tokenizer, validator });
+    const wave = new AlphaWave({ model, prompt, memory, functions, tokenizer, validator });
     describe("basic prompt completion", () => {
         it("should complete a prompt and update history", async () => {
             const response = await wave.completePrompt();
@@ -98,7 +95,7 @@ describe("AlphaWave", () => {
         });
 
         it("should complete a prompt with input passed in", async () => {
-            client.response = 'Hello';
+            model.response = 'Hello';
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'success');
             assert.deepEqual(response.message, { role: 'assistant', content: 'Hello' });
@@ -110,7 +107,7 @@ describe("AlphaWave", () => {
         });
 
         it("should complete a prompt with input already in memory", async () => {
-            client.response = 'Hello';
+            model.response = 'Hello';
             memory.set('input', 'Hi');
             const response = await wave.completePrompt();
             assert.equal(response.status, 'success');
@@ -123,7 +120,7 @@ describe("AlphaWave", () => {
         });
 
         it("should complete a prompt and update existing history", async () => {
-            client.response = 'Sure I can help with that';
+            model.response = 'Sure I can help with that';
             memory.set('history', [{ role: 'user', content: 'Hi' },{ role: 'assistant', content: 'Hi! How may I assist you?' }]);
             const response = await wave.completePrompt('book flight');
             assert.equal(response.status, 'success');
@@ -134,7 +131,7 @@ describe("AlphaWave", () => {
         });
 
         it("should complete a prompt and update existing history with a max history limit", async () => {
-            client.response = 'Hello';
+            model.response = 'Hello';
             for (let i = 0; i < 20; i++) {
                 const response = await wave.completePrompt();
                 assert.equal(response.status, 'success');
@@ -146,7 +143,7 @@ describe("AlphaWave", () => {
         });
 
         it("should complete a prompt and update existing history with a max history limit and input passed in", async () => {
-            client.response = 'Hello';
+            model.response = 'Hello';
             for (let i = 0; i < 20; i++) {
                 const response = await wave.completePrompt('Hi');
                 assert.equal(response.status, 'success');
@@ -158,7 +155,7 @@ describe("AlphaWave", () => {
         });
 
         it("should return an empty string for undefined response", async () => {
-            client.response = undefined as any;
+            model.response = undefined as any;
             const response = await wave.completePrompt();
             assert.equal(response.status, 'success');
             assert.deepEqual(response.message, { role: 'assistant', content: '' });
@@ -166,8 +163,8 @@ describe("AlphaWave", () => {
         });
 
         it("should not update memory if no input_variable configured", async () => {
-            const wave = new AlphaWave({ client, prompt, prompt_options, memory, functions, tokenizer, validator, input_variable: '' });
-            client.response = 'Hello';
+            const wave = new AlphaWave({ model, prompt, memory, functions, tokenizer, validator, input_variable: '' });
+            model.response = 'Hello';
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'success');
             assert.deepEqual(response.message, { role: 'assistant', content: 'Hello' });
@@ -177,8 +174,8 @@ describe("AlphaWave", () => {
         });
 
         it("should not update memory if no input_variable configured and no input passed in", async () => {
-            const wave = new AlphaWave({ client, prompt, prompt_options, memory, functions, tokenizer, validator, input_variable: '' });
-            client.response = 'Hello';
+            const wave = new AlphaWave({ model, prompt, memory, functions, tokenizer, validator, input_variable: '' });
+            model.response = 'Hello';
             const response = await wave.completePrompt('');
             assert.equal(response.status, 'success');
             assert.deepEqual(response.message, { role: 'assistant', content: 'Hello' });
@@ -188,8 +185,8 @@ describe("AlphaWave", () => {
         });
 
         it("should not update memory if no history_variable configured", async () => {
-            const wave = new AlphaWave({ client, prompt, prompt_options, memory, functions, tokenizer, validator, history_variable: '' });
-            client.response = 'Hello';
+            const wave = new AlphaWave({ model, prompt, memory, functions, tokenizer, validator, history_variable: '' });
+            model.response = 'Hello';
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'success');
             assert.deepEqual(response.message, { role: 'assistant', content: 'Hello' });
@@ -198,9 +195,9 @@ describe("AlphaWave", () => {
             memory.clear();
         });
 
-        it("should return a client error", async () => {
-            client.status = 'error';
-            client.response = 'Some Error';
+        it("should return a model error", async () => {
+            model.status = 'error';
+            model.response = 'Some Error';
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'error');
             assert.equal(response.message, 'Some Error');
@@ -208,8 +205,8 @@ describe("AlphaWave", () => {
         });
 
         it("should map any exceptions to errors", async () => {
-            client.status = 'success';
-            client.response = 'Hello';
+            model.status = 'success';
+            model.response = 'Hello';
             validator.exception = new Error('Some Exception');
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'error');
@@ -218,8 +215,8 @@ describe("AlphaWave", () => {
         });
 
         it("should map any non Error based exceptions to errors", async () => {
-            client.status = 'success';
-            client.response = 'Hello';
+            model.status = 'success';
+            model.response = 'Hello';
             validator.exception = 'Some Exception' as any;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'error');
@@ -228,8 +225,8 @@ describe("AlphaWave", () => {
         });
 
         it("should return a message object with a parsed content object", async () => {
-            client.status = 'success';
-            client.response = { role: 'assistant', content: { foo: 'bar'} };
+            model.status = 'success';
+            model.response = { role: 'assistant', content: { foo: 'bar'} };
             validator.returnContent = true;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'success');
@@ -242,7 +239,7 @@ describe("AlphaWave", () => {
 
     describe("prompt completion with validation", () => {
         it("should repair an error in one turn", async () => {
-            client.response = 'Hello';
+            model.response = 'Hello';
             validator.repairAttempts = 1;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'success');
@@ -253,7 +250,7 @@ describe("AlphaWave", () => {
         });
 
         it("should repair an error in two turns", async () => {
-            client.response = 'Hello';
+            model.response = 'Hello';
             validator.repairAttempts = 2;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'success');
@@ -264,7 +261,7 @@ describe("AlphaWave", () => {
         });
 
         it("should repair an error in three turns", async () => {
-            client.response = 'Hello';
+            model.response = 'Hello';
             validator.repairAttempts = 3;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'success');
@@ -275,7 +272,7 @@ describe("AlphaWave", () => {
         });
 
         it("should fail to repair an error in four turns", async () => {
-            client.response = 'Hello';
+            model.response = 'Hello';
             validator.repairAttempts = 4;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'invalid_response');
@@ -285,8 +282,8 @@ describe("AlphaWave", () => {
             memory.clear();
         });
 
-        it("should return client errors while repairing", async () => {
-            client.response = 'Hello';
+        it("should return model errors while repairing", async () => {
+            model.response = 'Hello';
             validator.repairAttempts = 2;
             validator.clientErrorDuringRepair = true;
             const response = await wave.completePrompt('Hi');
@@ -296,8 +293,8 @@ describe("AlphaWave", () => {
         });
 
         it("should use default feedback when repairing", async () => {
-            client.status = 'success';
-            client.response = 'Hello';
+            model.status = 'success';
+            model.response = 'Hello';
             validator.repairAttempts = 1;
             validator.feedback = undefined as any;
             const response = await wave.completePrompt('Hi');
@@ -309,8 +306,8 @@ describe("AlphaWave", () => {
         });
 
         it("should return an empty string for a repaired response that's undefined", async () => {
-            client.status = 'success';
-            client.response =  undefined as any;
+            model.status = 'success';
+            model.response =  undefined as any;
             validator.repairAttempts = 1;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'success');
@@ -319,8 +316,8 @@ describe("AlphaWave", () => {
         });
 
         it("should return a message object as a repaired response", async () => {
-            client.status = 'success';
-            client.response = { role: 'assistant', content: 'Hello World' };
+            model.status = 'success';
+            model.response = { role: 'assistant', content: 'Hello World' };
             validator.repairAttempts = 1;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'success');
@@ -331,8 +328,8 @@ describe("AlphaWave", () => {
         });
 
         it("should return a message object with a parsed content object as a repaired response", async () => {
-            client.status = 'success';
-            client.response = { role: 'assistant', content: { foo: 'bar'} };
+            model.status = 'success';
+            model.response = { role: 'assistant', content: { foo: 'bar'} };
             validator.repairAttempts = 1;
             validator.returnContent = true;
             const response = await wave.completePrompt('Hi');

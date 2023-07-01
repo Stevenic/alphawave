@@ -1,3 +1,3 @@
 export * from "./AlphaWaveModel";
-export * from "./EmbeddingsModel";
-export * from "./PromptCompletionModel";
+export * from "./LangChainEmbeddings";
+export * from "./LangChainModel";
