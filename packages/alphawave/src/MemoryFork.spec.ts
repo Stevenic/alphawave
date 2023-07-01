@@ -1,5 +1,5 @@
 import { strict as assert } from "assert";
-import { FunctionRegistry, GPT3Tokenizer, VolatileMemory } from "promptrix";
+import { VolatileMemory } from "promptrix";
 import { MemoryFork } from "./MemoryFork";
 
 

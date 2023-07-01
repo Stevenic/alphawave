@@ -30,7 +30,7 @@ const model = new OpenAIModel({
     model: 'gpt-3.5-turbo',
     temperature: 0.9,
     max_input_tokens: 2000,
-    max_tokens: 1000,
+    max_tokens: 1000
 });
 
 // Create a wave

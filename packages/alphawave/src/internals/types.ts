@@ -6,7 +6,7 @@
  * Licensed under the MIT License.
  */
 
-import { Schema } from "jsonschema";
+import { ChatCompletionFunction } from "../types";
 
 /**
  * @private
@@ -82,7 +82,7 @@ export interface CreateCompletionResponseUsage {
  */
 export interface CreateChatCompletionRequest {
     messages: Array<ChatCompletionRequestMessage>;
-    functions?: Array<ChatCompletionFunctions>;
+    functions?: Array<ChatCompletionFunction>;
     function_call?: CreateChatCompletionRequestFunctionCall;
     temperature?: number | null;
     top_p?: number | null;
@@ -96,31 +96,6 @@ export interface CreateChatCompletionRequest {
     user?: string;
 }
 
-/**
- *
- */
-export interface ChatCompletionFunctions {
-    /**
-     * Name of the function to be called.
-     * @remarks
-     * Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64.
-     */
-    name: string;
-
-    /**
-     * Optional. Description of what the function does.
-     */
-    description?: string;
-
-    /**
-     * Optional. Parameters the functions accepts, described as a JSON Schema object.
-     * @remarks
-     * See the [guide](/docs/guides/gpt/function-calling) for examples, and the
-     * [JSON Schema reference](https://json-schema.org/understanding-json-schema/) for documentation
-     * about the format.
-     */
-    parameters?: Schema;
-}
 
 /**
  * @private

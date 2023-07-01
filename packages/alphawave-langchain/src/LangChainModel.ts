@@ -153,11 +153,10 @@ export class LangChainModel extends BaseChatModel implements PromptCompletionMod
                 const chatMsg = await (this.instance as BaseLanguageModel).predictMessages(chatMessages, this._options.call_options, this._options.callbacks);
 
                 // Convert to AlphaWave message
-                let message: Message
-                switch (chatMsg._getType()) {
-                    case 'ai':
-                        return { status: 'success'}
-                }
+                return {
+                    status: 'success',
+                    message: { role: 'assistant', content: chatMsg.text }
+                };
             } catch (err: unknown) {
                 return {
                     status: 'error',

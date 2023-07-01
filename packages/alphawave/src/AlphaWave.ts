@@ -1,10 +1,13 @@
-import { ConversationHistory, FunctionRegistry, GPT3Tokenizer, Message, Prompt, PromptFunctions, PromptMemory, PromptSection, Tokenizer, VolatileMemory } from "promptrix";
+import { ConversationHistory, FunctionRegistry, GPT3Tokenizer, Message, Prompt, PromptFunctions, PromptMemory, PromptSection, Tokenizer, Utilities, VolatileMemory } from "promptrix";
 import { StrictEventEmitter } from "strict-event-emitter-types";
 import { EventEmitter } from "events";
 import { PromptResponse, Validation, PromptResponseValidator, PromptCompletionModel } from "./types";
 import { DefaultResponseValidator } from "./DefaultResponseValidator";
 import { MemoryFork } from "./MemoryFork";
 import { Colorize } from "./internals";
+import { OpenAIModel } from "./OpenAIModel";
+import { FunctionResponseValidator } from "./FunctionResponseValidator";
+import { Response } from "./Response";
 
 /**
  * Options for an AlphaWave instance.
@@ -252,6 +255,7 @@ export type AlphaWaveEmitter = StrictEventEmitter<EventEmitter, AlphaWaveEvents>
 
 /**
  * AlphaWave class that's used to complete prompts.
+ *
  * @remarks
  * Each wave, at a minimum needs to be configured with a `client`, `prompt`, and `prompt_options`.
  *
@@ -289,6 +293,13 @@ export type AlphaWaveEmitter = StrictEventEmitter<EventEmitter, AlphaWaveEvents>
  * This "feedback" technique works with all the GPT-3 generation of models and I've tested it with
  * `text-davinci-003`, `gpt-3.5-turbo`, and `gpt-4`. There's a good chance it will work with other
  * open source models like `LLaMA` and Googles `Bard` but I have yet to test it with those models.
+ *
+ * AlphaWave supports OpenAI's functions feature and can validate the models response against the
+ * schema for the supported functions. When an AlphaWave is configured with both a `OpenAIModel`
+ * and a `FunctionResponseValidator`, the model will be cloned and configured to send the
+ * validators configured list of functions with the request. There's no need to separately
+ * configure the models `functions` list, but if you do, the models functions list will be sent
+ * instead.
  */
 export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
     /**
@@ -310,9 +321,46 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
             max_repair_attempts: 3,
             memory: new VolatileMemory(),
             tokenizer: new GPT3Tokenizer(),
-            validator: new DefaultResponseValidator(),
             logRepairs: false
         }, options) as ConfiguredAlphaWaveOptions;
+
+        // Create validator to use
+        if (!this.options.validator) {
+            // Check for an OpenAI model using functions
+            if (this.options.model instanceof OpenAIModel && this.options.model.options.functions) {
+                this.options.validator = new FunctionResponseValidator(this.options.model.options.functions);
+            } else {
+                this.options.validator = new DefaultResponseValidator();
+            }
+        }
+    }
+
+    /**
+     * Adds a result from a `function_call` to the history.
+     * @param name Name of the function that was called.
+     * @param results Results returned by the function.
+     */
+    public addFunctionResultToHistory(name: string, results: any): void {
+        // Convert content to string
+        let content = '';
+        if (typeof results === "object") {
+            if (typeof results.toISOString == "function") {
+                content = results.toISOString();
+            } else {
+                content = JSON.stringify(results);
+            }
+        } else if (results !== undefined && results !== null) {
+            content = results.toString();
+        }
+
+        // Add result to history
+        const { memory, history_variable } = this.options;
+        const history: Message[] = memory.get(history_variable) ?? [];
+        history.push({ role: 'function', name, content });
+        if (history.length > this.options.max_history_messages) {
+            history.splice(0, history.length - this.options.max_history_messages);
+        }
+        memory.set(history_variable, history);
     }
 
     /**
@@ -348,11 +396,18 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
      * @returns A strongly typed response object.
      */
     public async completePrompt<TContent = any>(input?: string): Promise<PromptResponse<TContent>> {
-        const { model, prompt, memory, functions, tokenizer, validator, max_repair_attempts, history_variable, input_variable } = this.options;
+        const { prompt, memory, functions, tokenizer, validator, max_repair_attempts, history_variable, input_variable } = this.options;
+        let { model } = this.options;
+
+        // Check for OpenAI model being used with a function validator
+        if (model instanceof OpenAIModel && validator instanceof FunctionResponseValidator && !model.options.functions) {
+            // Create a clone of the model that's configured to use the validators functions
+            model = model.clone({ functions: validator.functions })
+        }
 
         // Update/get user input
         if (input_variable) {
-            if (input) {
+            if (typeof input === 'string') {
                 memory.set(input_variable, input);
             } else {
                 input = memory.has(input_variable) ? memory.get(input_variable) : ''

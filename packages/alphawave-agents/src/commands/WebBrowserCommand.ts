@@ -131,7 +131,7 @@ export class WebBrowserCommand extends SchemaBasedCommand<WebBrowserCommandInput
                 }
 
                 // Get the first n tokens of page text for context
-                const maxTokens = (this._options.prompt_options.max_input_tokens ?? 1024) - 200;
+                const maxTokens = (this._options.max_input_tokens ?? 1024) - 200;
                 const encoded = tokenizer.encode(page);
                 const text = encoded.length <= maxTokens ? page : tokenizer.decode(encoded.slice(0, maxTokens));
 
@@ -151,8 +151,7 @@ export class WebBrowserCommand extends SchemaBasedCommand<WebBrowserCommandInput
                 // Create wave and complete prompt
                 const wave = new AlphaWave({
                     prompt,
-                    client: this._options.prompt_client,
-                    prompt_options: this._options.prompt_options,
+                    model: this._options.model,
                     memory: fork,
                 });
                 const response = await wave.completePrompt<string>();
@@ -160,7 +159,7 @@ export class WebBrowserCommand extends SchemaBasedCommand<WebBrowserCommandInput
                     return `${response.status} while search for answer: ${response.message}`;
                 }
 
-                return response.message.content;
+                return response.message.content!;
             }
         } catch (err: unknown) {
             return (err as any).toString();

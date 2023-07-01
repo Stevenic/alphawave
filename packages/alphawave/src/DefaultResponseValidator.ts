@@ -14,7 +14,7 @@ export class DefaultResponseValidator implements PromptResponseValidator {
      * @param remaining_attempts Number of remaining validation attempts.
      * @returns A `Validation` with the status and value. The validation is always valid.
      */
-    public validateResponse(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse<string>, remaining_attempts: number): Promise<Validation<string>> {
+    public validateResponse(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse<string>, remaining_attempts: number): Promise<Validation<string|null>> {
         return Promise.resolve({
             type: 'Validation',
             valid: true,

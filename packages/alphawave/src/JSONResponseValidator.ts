@@ -23,7 +23,7 @@ export class JSONResponseValidator<TContent = Record<string, any>> implements Pr
      * @param tokenizer Tokenizer used to render the prompt.
      * @param response Response to validate.
      * @param remaining_attempts Number of remaining validation attempts.
-     * @returns A `Validation` with the status and value. The validation is always valid.
+     * @returns A `Validation` with the status and value.
      */
     public validateResponse(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse, remaining_attempts: number): Promise<Validation> {
         const message = response.message;

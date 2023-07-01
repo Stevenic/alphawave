@@ -1,6 +1,6 @@
 import { strict as assert } from "assert";
 import { FunctionRegistry, GPT3Tokenizer, Prompt, VolatileMemory, Message } from "promptrix";
-import { TestClient, PromptCompletionOptions } from "alphawave";
+import { TestModel } from "alphawave";
 import { PromptCommand } from "./PromptCommand";
 import { CommandSchema } from "../SchemaBasedCommand";
 
@@ -10,9 +10,8 @@ describe("PromptCommand", () => {
     const functions = new FunctionRegistry();
     const tokenizer = new GPT3Tokenizer();
     const prompt = new Prompt([]);
-    const prompt_options: PromptCompletionOptions = { completion_type: 'chat', model: 'gpt-3.5-turbo' };
     const prompt_response = { role: 'assistant', content: "fact remembered" };
-    const client = new TestClient('success', prompt_response);
+    const model = new TestModel('success', prompt_response);
     const schema: CommandSchema = {
         type: 'object',
         title: 'test',
@@ -28,7 +27,7 @@ describe("PromptCommand", () => {
 
     describe("constructor", () => {
         it("should create a PromptCommand", () => {
-            const command = new PromptCommand({ prompt, prompt_options, client, schema });
+            const command = new PromptCommand({ prompt, model, schema });
             assert.equal(command.title, 'test');
             assert.equal(command.description, 'test description');
             assert.equal(command.inputs, `"fact":"<a fact>"`);
@@ -38,7 +37,7 @@ describe("PromptCommand", () => {
 
     describe("validate", () => {
         it("should pass a valid input", async () => {
-            const command = new PromptCommand({ prompt, prompt_options, client, schema });
+            const command = new PromptCommand({ prompt, model, schema });
             const input = {
                 fact: 'test fact'
             };
@@ -48,7 +47,7 @@ describe("PromptCommand", () => {
         });
 
         it("should fail an invalid input", async () => {
-            const command = new PromptCommand({ prompt, prompt_options, client, schema });
+            const command = new PromptCommand({ prompt, model, schema });
             const input = {
                 test: 'test fact'
             };
@@ -60,7 +59,7 @@ describe("PromptCommand", () => {
 
     describe("execute", () => {
         it("should return models response", async () => {
-            const command = new PromptCommand({ prompt, prompt_options, client, schema });
+            const command = new PromptCommand({ prompt, model, schema });
             const input = {
                 fact: 'test fact'
             };

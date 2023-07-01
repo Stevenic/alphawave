@@ -29,7 +29,7 @@
         "gpt-3-encoder": "1.1.4",
         "json-colorizer": "^2.2.2",
         "jsonschema": "1.4.1",
-        "promptrix": "^0.4.1",
+        "promptrix": "^0.4.2",
         "strict-event-emitter-types": "^2.0.0",
         "yaml": "2.3.1"
     },

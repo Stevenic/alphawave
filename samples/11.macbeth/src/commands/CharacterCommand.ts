@@ -1,4 +1,4 @@
-import { PromptCompletionClient } from "alphawave";
+import { OpenAIModel } from "alphawave";
 import { PromptCommand, CommandSchema } from "alphawave-agents";
 import { Prompt, PromptMemory, SystemMessage } from "promptrix";
 
@@ -21,19 +21,16 @@ const CharacterCommandSchema: CommandSchema = {
 };
 
 export class CharacterCommand extends PromptCommand {
-    public constructor(client: PromptCompletionClient, model: string, name: string, description?: string) {
+    public constructor(model: OpenAIModel, name: string, description?: string) {
         super({
-            client,
-            prompt: new Prompt([
-                new SystemMessage(`You are the character of {{$name}} from Macbeth.\n\nScene:\n{{$scene}}\n\nDialog:\n{{$dialog}}\n\nRespond with your next line of dialog formatted as "{{$name}}: <line of dialog>".\n\n{{$name}}:`)
-            ]),
-            prompt_options: {
-                completion_type: model.startsWith('gpt') ? 'chat' : 'text',
-                model,
+            model: model.clone({
                 temperature: 0.4,
                 max_input_tokens: 2500,
                 max_tokens: 200,
-            },
+            }),
+            prompt: new Prompt([
+                new SystemMessage(`You are the character of {{$name}} from Macbeth.\n\nScene:\n{{$scene}}\n\nDialog:\n{{$dialog}}\n\nRespond with your next line of dialog formatted as "{{$name}}: <line of dialog>".\n\n{{$name}}:`)
+            ]),
             schema: CharacterCommandSchema,
             parseResponse: async (response: string, input: Record<string, any>, memory: PromptMemory) => {
                 // Trim and combine dialog.

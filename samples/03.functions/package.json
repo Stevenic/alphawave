@@ -1,7 +1,7 @@
 {
-    "name": "macbeth",
+    "name": "functions-bot",
     "version": "1.0.0",
-    "description": "A sample Alpha Wave Agent that can act out any scene from Macbeth.",
+    "description": "A sample bot that uses OpenAI functions.",
     "author": "Steven Ickman",
     "license": "MIT",
     "main": "./lib/index.js",
@@ -19,7 +19,6 @@
     },
     "dependencies": {
         "alphawave": "~0.6.0",
-        "alphawave-agents": "~0.6.0",
         "promptrix": "^0.4.2",
         "dotenv": "^8.2.0"
     },

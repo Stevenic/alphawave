@@ -13,7 +13,7 @@ import {
     ResponseParser
 } from '@microsoft/teams-ai';
 import { ActivityTypes, TurnContext, MemoryStorage } from 'botbuilder';
-import { OpenAIClient, JSONResponseValidator } from "alphawave";
+import { OpenAIModel, JSONResponseValidator } from "alphawave";
 import { ActionPlanner, PlanValidator } from "alphawave-teams";
 import * as path from 'path';
 import * as responses from './responses';
@@ -69,20 +69,18 @@ if (!process.env.OpenAIKey) {
     );
 }
 
-// Create client
-const client = new OpenAIClient({
+// Create model
+const model = new OpenAIModel({
     apiKey: process.env.OpenAIKey,
+    completion_type: 'chat',
+    model: 'gpt-3.5-turbo',
+    max_input_tokens: 3000,
     logRequests: true
 });
 
 // Create planner
 const planner = new ActionPlanner<ApplicationTurnState>({
-    client,
-    prompt_options: {
-        completion_type: 'chat',
-        model: 'gpt-3.5-turbo',
-        max_input_tokens: 3000
-    },
+    model,
     logRepairs: true
 });
 const promptManager = new DefaultPromptManager<ApplicationTurnState>(path.join(__dirname, '../src/prompts'));

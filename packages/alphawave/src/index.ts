@@ -1,5 +1,6 @@
 export * from "./AlphaWave";
 export * from "./DefaultResponseValidator";
+export * from "./FunctionResponseValidator";
 export * from "./JSONResponseValidator";
 export * from "./MemoryFork";
 export * from "./OpenAIEmbeddings";

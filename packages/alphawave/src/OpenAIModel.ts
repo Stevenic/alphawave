@@ -1,12 +1,12 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosRequestConfig } from 'axios';
 import { PromptFunctions, PromptMemory, PromptSection, Tokenizer } from "promptrix";
-import { PromptCompletionModel, PromptResponse } from "./types";
-import { ChatCompletionFunctions, ChatCompletionRequestMessage, CreateChatCompletionRequest, CreateChatCompletionResponse, CreateCompletionRequest, CreateCompletionResponse, OpenAICreateChatCompletionRequest, OpenAICreateCompletionRequest } from "./internals";
+import { PromptCompletionModel, PromptResponse, ChatCompletionFunction } from "./types";
+import { ChatCompletionRequestMessage, CreateChatCompletionRequest, CreateChatCompletionResponse, CreateCompletionRequest, CreateCompletionResponse, OpenAICreateChatCompletionRequest, OpenAICreateCompletionRequest } from "./internals";
 import { Colorize } from "./internals";
 
-
-export { ChatCompletionFunctions } from "./internals";
-
+/**
+ * Base model options common to both OpenAI and Azure OpenAI services.
+ */
 export interface BaseOpenAIModelOptions {
     /**
      * Type of completion API to call.
@@ -106,7 +106,7 @@ export interface BaseOpenAIModelOptions {
     /**
      * Optional. A list of functions the model may generate JSON inputs for.
      */
-    functions?: ChatCompletionFunctions[];
+    functions?: ChatCompletionFunction[];
 
     /**
      * Optional. Controls how the model responds to function calls.
@@ -295,12 +295,16 @@ export class OpenAIModel implements PromptCompletionModel {
             if (this.options.logRequests) {
                 console.log(Colorize.title('CHAT PROMPT:'));
                 console.log(Colorize.output(result.output));
+                if (Array.isArray(this.options.functions) && this.options.functions.length > 0) {
+                    console.log(Colorize.title('FUNCTIONS:'));
+                    console.log(Colorize.output(this.options.functions));
+                }
             }
 
             // Call chat completion API
             const request: CreateChatCompletionRequest = this.copyOptionsToRequest<CreateChatCompletionRequest>({
                 messages: result.output as ChatCompletionRequestMessage[],
-            }, this.options, ['max_tokens', 'temperature', 'top_p', 'n', 'stream', 'logprobs', 'echo', 'stop', 'presence_penalty', 'frequency_penalty', 'best_of', 'logit_bias', 'user']);
+            }, this.options, ['max_tokens', 'temperature', 'top_p', 'n', 'stream', 'logprobs', 'echo', 'stop', 'presence_penalty', 'frequency_penalty', 'best_of', 'logit_bias', 'user', 'functions', 'function_call']);
             const response = await this.createChatCompletion(request);
             if (this.options.logRequests) {
                 console.log(Colorize.title('CHAT RESPONSE:'));

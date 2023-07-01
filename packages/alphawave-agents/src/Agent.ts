@@ -14,7 +14,7 @@ import {
     Utilities,
     VolatileMemory
 } from "promptrix";
-import { AlphaWave, PromptCompletionClient, PromptCompletionOptions, PromptResponse } from "alphawave";
+import { AlphaWave, PromptCompletionModel, PromptResponse } from "alphawave";
 import { StrictEventEmitter } from "strict-event-emitter-types";
 import { EventEmitter } from "events";
 import { v4 as uuidv4 } from "uuid";
@@ -24,10 +24,9 @@ import { AgentCommandSection } from "./AgentCommandSection";
 import { AgentCommandValidator } from "./AgentCommandValidator";
 
 export interface AgentOptions  {
-    client: PromptCompletionClient;
+    model: PromptCompletionModel;
     context_variable?: string;
     prompt: string|string[]|PromptSection;
-    prompt_options: PromptCompletionOptions;
     agent_variable?: string;
     functions?: PromptFunctions;
     history_variable?: string;
@@ -45,7 +44,7 @@ export interface AgentOptions  {
 
 export interface ConfiguredAgentOptions {
     agent_variable: string;
-    client: PromptCompletionClient;
+    model: PromptCompletionModel;
     context_variable: string;
     functions: PromptFunctions;
     history_variable: string;
@@ -57,7 +56,6 @@ export interface ConfiguredAgentOptions {
     max_steps: number;
     memory: PromptMemory;
     prompt: string|string[]|PromptSection;
-    prompt_options: PromptCompletionOptions;
     retry_invalid_responses: boolean;
     step_delay: number;
     tokenizer: Tokenizer;
@@ -110,10 +108,6 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
         }, options) as ConfiguredAgentOptions;
     }
 
-    public get client(): PromptCompletionClient {
-        return this._options.client;
-    }
-
     public get events(): AgentEmitter {
         return this._events;
     }
@@ -128,6 +122,10 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
 
     public get options(): ConfiguredAgentOptions {
         return this._options;
+    }
+
+    public get model(): PromptCompletionModel {
+        return this._options.model;
     }
 
     public get tokenizer(): Tokenizer {
@@ -291,9 +289,8 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
 
                 // Create a wave for the prompt
                 const wave = new AlphaWave({
-                    client: this._options.client,
+                    model: this._options.model,
                     prompt: prompt,
-                    prompt_options: this._options.prompt_options,
                     functions: this._options.functions,
                     history_variable: history_variable,
                     input_variable: this._options.input_variable,
@@ -326,7 +323,7 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
 
             // Get agents thought and execute command
             const message: Message<AgentThought> = response!.message as Message<AgentThought>;
-            const thought = message.content;
+            const thought = message.content!;
             this._events.emit('newThought', thought);
             const result = await this.executeCommand(state, thought);
 

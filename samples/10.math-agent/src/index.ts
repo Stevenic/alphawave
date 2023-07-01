@@ -1,5 +1,5 @@
 import { Agent, AskCommand, FinalAnswerCommand, MathCommand } from "alphawave-agents";
-import { OpenAIClient } from "alphawave";
+import { OpenAIModel } from "alphawave";
 import { config } from "dotenv";
 import * as path from "path";
 import * as readline from "readline";
@@ -9,21 +9,19 @@ const ENV_FILE = path.join(__dirname, '..', '.env');
 config({ path: ENV_FILE });
 
 // Create an OpenAI or AzureOpenAI client
-const client = new OpenAIClient({
-    apiKey: process.env.OpenAIKey!
+const model = new OpenAIModel({
+    apiKey: process.env.OpenAIKey!,
+    completion_type: 'chat',
+    model: 'gpt-3.5-turbo',
+    temperature: 0.2,
+    max_input_tokens: 2000,
+    max_tokens: 1000,
 });
 
 // Create an agent
 const agent = new Agent({
-    client,
+    model,
     prompt: `You are an expert in math. Use the math command to assist users with their math problems.`,
-    prompt_options: {
-        completion_type: 'chat',
-        model: 'gpt-3.5-turbo',
-        temperature: 0.2,
-        max_input_tokens: 2000,
-        max_tokens: 1000,
-    },
     initial_thought: {
         "thoughts": {
             "thought": "I need to ask the user for the problem they'd like me to solve",

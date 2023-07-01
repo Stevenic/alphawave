@@ -1,6 +1,6 @@
 import { PromptMemory, PromptFunctions, Tokenizer, UserMessage } from "promptrix";
-import { PromptCompletionClient, PromptCompletionOptions, EmbeddingsClient, MemoryFork, AlphaWave, JSONResponseValidator } from "alphawave";
-import { PromptCompletionModel, EmbeddingsModel } from "alphawave-langchain";
+import { PromptCompletionModel, EmbeddingsModel, MemoryFork, AlphaWave, JSONResponseValidator } from "alphawave";
+import { LangChainEmbeddings } from "alphawave-langchain";
 import { AxiosRequestConfig } from "axios";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
@@ -11,15 +11,14 @@ import { WebUtilities } from "../WebUtilities";
 export type WebPageParseMode = "text" | "markdown" | "html";
 
 export interface WebPageSearchCommandOptions {
-    prompt_client: PromptCompletionClient;
-    prompt_options: PromptCompletionOptions;
-    embeddings_client: EmbeddingsClient;
-    embeddings_model: string;
+    model: PromptCompletionModel;
+    embeddings: EmbeddingsModel;
     axios_config?: Omit<AxiosRequestConfig, "url">;
     chunk_size?: number;
     chunk_overlap?: number;
     headers?: Record<string, any>;
     parse_mode?: WebPageParseMode;
+    max_input_tokens?: number;
 }
 
 export interface WebPageSearchCommandInput {
@@ -74,7 +73,7 @@ export class WebPageSearchCommand extends SchemaBasedCommand<WebPageSearchComman
             }
 
             // Get semantically relevant text to use as context
-            const maxInputTokens = this._options.prompt_options.max_input_tokens ?? 1024;
+            const maxInputTokens = this._options.max_input_tokens ?? 1024;
             const text = await this.getTextChunks(page, input, tokenizer, maxInputTokens - 200);
 
             // Fork memory and set template values
@@ -116,8 +115,7 @@ export class WebPageSearchCommand extends SchemaBasedCommand<WebPageSearchComman
             // Create wave and complete prompt
             const wave = new AlphaWave({
                 prompt,
-                client: this._options.prompt_client,
-                prompt_options: this._options.prompt_options,
+                model: this._options.model,
                 memory: fork,
                 validator: answerValidator,
             });
@@ -131,7 +129,7 @@ export class WebPageSearchCommand extends SchemaBasedCommand<WebPageSearchComman
             }
 
             // Cleanup response
-            const output = response.message.content;
+            const output = response.message.content!;
             output.url = input.url;
             if (output.answered) {
                 if (!output.answer) {
@@ -184,10 +182,7 @@ export class WebPageSearchCommand extends SchemaBasedCommand<WebPageSearchComman
         const docs = texts.map(pageContent => new Document({ pageContent, metadata: [] }));
 
         // Add them to an in-memory vector store
-        const embeddings = new EmbeddingsModel({
-            client: this._options.embeddings_client,
-            model: this._options.embeddings_model
-        });
+        const embeddings = new LangChainEmbeddings(this._options.embeddings);
         const vectorStore = await MemoryVectorStore.fromDocuments(docs, embeddings);
 
         // Query for the chunks and add as many will fit into the context

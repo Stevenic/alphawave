@@ -546,7 +546,7 @@
   resolved "https://registry.yarnpkg.com/@microsoft/recognizers-text/-/recognizers-text-1.1.4.tgz#264530f748b2cad3fac54d53538f88ad2bf99b7e"
   integrity sha512-hlSVXcaX5i8JcjuUJpVxmy2Z/GxvFXarF0KVySCFop57wNEnrLWMHe4I4DjP866G19VyIKRw+vPA32pkGhZgTg==
 
-"@microsoft/teams-ai@~0.1.0-preview.1", "@microsoft/teams-ai@~0.1.0-preview.2":
+"@microsoft/teams-ai@~0.1.0-preview.2":
   version "0.1.0-preview.2"
   resolved "https://registry.yarnpkg.com/@microsoft/teams-ai/-/teams-ai-0.1.0-preview.2.tgz#38f6c3fbf9fea7fcae3221dc828d0eafb0294834"
   integrity sha512-Dp7ZnGKS5rA/Xa2MkC28gveUC/nvwqK7CGaqo3uTtyVvEcSXgitPUmN0FtSoXb11PvyQNipky0D/qskRIpHWww==
@@ -873,30 +873,6 @@ aggregate-error@^3.0.0:
   dependencies:
     clean-stack "^2.0.0"
     indent-string "^4.0.0"
-
-alphawave-agents@~0.5.0, alphawave-agents@~0.5.1:
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/alphawave-agents/-/alphawave-agents-0.5.1.tgz#6d12b6aa40be19397460b800d856925192683e53"
-  integrity sha512-QktvJN8vmpHxLRCNBc71nEYRHhPwtu8cgR8TDiDJKOuwUNUyRk2SCFsRA/gn+zKVt/AlMI4PIkyGtVmcXjnOfg==
-  dependencies:
-    alphawave "0.5.1"
-    jsonschema "1.4.1"
-    promptrix "^0.3.0"
-    strict-event-emitter-types "^2.0.0"
-    uuid "^9.0.0"
-
-alphawave@0.5.1, alphawave@~0.5.0, alphawave@~0.5.1:
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/alphawave/-/alphawave-0.5.1.tgz#45e41a9e117134ff4f1cd86fa7cef38b1c3afcc7"
-  integrity sha512-5Sdiz28eCTIGrlQxSL5SNlj8frKmdB/Ho6L/3HthVBEA8prjV1UDR+E1qBIg2EUmxBgxPhzmkct/f6ubfH7kmA==
-  dependencies:
-    axios "^1.3.4"
-    gpt-3-encoder "1.1.4"
-    json-colorizer "^2.2.2"
-    jsonschema "1.4.1"
-    promptrix "^0.3.0"
-    strict-event-emitter-types "^2.0.0"
-    yaml "2.3.1"
 
 ansi-align@^2.0.0:
   version "2.0.0"
@@ -3688,28 +3664,6 @@ kind-of@^6.0.0, kind-of@^6.0.2:
   resolved "https://registry.yarnpkg.com/kind-of/-/kind-of-6.0.3.tgz#07c05034a6c349fa06e24fa35aa76db4580ce4dd"
   integrity sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw==
 
-langchain@^0.0.92:
-  version "0.0.92"
-  resolved "https://registry.yarnpkg.com/langchain/-/langchain-0.0.92.tgz#235c201dd6007d317e82f644095722f1fa2cb5ae"
-  integrity sha512-77528kXJu9C391qV1a5jDzZLEjIblq/VtpH7xd4BwavgvhRmeSXR9WkrHHmih/Phpae4Ss3dtb7pcyd78rp/YA==
-  dependencies:
-    "@anthropic-ai/sdk" "^0.4.3"
-    ansi-styles "^5.0.0"
-    binary-extensions "^2.2.0"
-    expr-eval "^2.0.2"
-    flat "^5.0.2"
-    js-tiktoken "^1.0.6"
-    jsonpointer "^5.0.1"
-    ml-distance "^4.0.0"
-    object-hash "^3.0.0"
-    openai "^3.2.0"
-    p-queue "^6.6.2"
-    p-retry "4"
-    uuid "^9.0.0"
-    yaml "^2.2.1"
-    zod "^3.21.4"
-    zod-to-json-schema "^3.20.4"
-
 langchain@^0.0.95:
   version "0.0.95"
   resolved "https://registry.yarnpkg.com/langchain/-/langchain-0.0.95.tgz#500238ae9312f43a5f9dd6c20bf02c2c826ade80"
@@ -4450,14 +4404,6 @@ open@^8.0.0:
     is-docker "^2.1.1"
     is-wsl "^2.2.0"
 
-openai@^3.2.0:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/openai/-/openai-3.2.1.tgz#1fa35bdf979cbde8453b43f2dd3a7d401ee40866"
-  integrity sha512-762C9BNlJPbjjlWZi4WYK9iM2tAVAv0uUp1UmI34vb0CN5T2mjB/qM6RYBmNKMh/dN9fC+bxqPwWJZUTWW052A==
-  dependencies:
-    axios "^0.26.0"
-    form-data "^4.0.0"
-
 openai@^3.3.0:
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/openai/-/openai-3.3.0.tgz#a6408016ad0945738e1febf43f2fccca83a3f532"
@@ -4756,26 +4702,10 @@ process@^0.11.10:
   resolved "https://registry.yarnpkg.com/process/-/process-0.11.10.tgz#7332300e840161bda3e69a1d1d91a7d4bc16f182"
   integrity sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==
 
-promptrix@^0.3.0, promptrix@^0.3.1:
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/promptrix/-/promptrix-0.3.1.tgz#f3a1aae9531369761e256b4cf4b6a83fab1da5d6"
-  integrity sha512-VuRyJpx0D1TR72766hU/lqKq+TrWNKVNDb8geEJ1xZkvSa3m8R7BUcDydI3gh7S2Y3S3bIQpPkKr5YGy2aIcmQ==
-  dependencies:
-    gpt-3-encoder "1.1.4"
-    yaml "^1.10.0"
-
-promptrix@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/promptrix/-/promptrix-0.4.0.tgz#ac53b06392b235b331b06aea7774a6c595f0a7b9"
-  integrity sha512-zW61EoiLwzcbYizh29+GnpmJVpWccdsFhIqq5E/KiRHO7jzTr5zUPUOs/xyj+cVodKDu1SmqcktXcTrojQ5GlQ==
-  dependencies:
-    gpt-3-encoder "1.1.4"
-    yaml "^1.10.0"
-
-promptrix@^0.4.1:
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/promptrix/-/promptrix-0.4.1.tgz#38ef85addd3de12eb6dfae0ddc7c542efc699f4a"
-  integrity sha512-hO7Q3ZaOulgLQL4crCMiCIuDkz/j0SikQdIoDeFaNRUQAEj9QV5BGtb10yKQKODVv/ePW1aYZftrxnuqQNTx2Q==
+promptrix@^0.4.2:
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/promptrix/-/promptrix-0.4.2.tgz#0d7f90ece986e4e3c82f8a0596b5c0e741234a7e"
+  integrity sha512-/AiuGZHqPRPCUnEHHz0g8YCRIFKwWO6TYHdv6iqhCUdAjp6BMAfSEX/wGLmwzY29PsP5//FiQ/AfDF2tOCtqtQ==
   dependencies:
     gpt-3-encoder "1.1.4"
     yaml "^1.10.0"

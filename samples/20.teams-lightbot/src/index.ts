@@ -65,7 +65,7 @@ server.listen(process.env.port || process.env.PORT || 3978, () => {
 });
 
 import { AI, Application, DefaultPromptManager, DefaultTurnState } from '@microsoft/teams-ai';
-import { OpenAIClient } from "alphawave";
+import { OpenAIModel } from "alphawave";
 import { ActionPlanner, PlanValidator } from "alphawave-teams";
 import * as responses from './responses';
 
@@ -79,9 +79,11 @@ if (!process.env.OpenAIKey) {
     throw new Error('Missing environment variables - please check that OpenAIKey is set.');
 }
 
-// Create client
-const client = new OpenAIClient({
+// Create model
+const model = new OpenAIModel({
     apiKey: process.env.OpenAIKey,
+    completion_type: 'chat',
+    model: 'gpt-3.5-turbo',
     logRequests: true
 });
 
@@ -101,11 +103,7 @@ validator.action('Pause', {
 
 // Create planner
 const planner = new ActionPlanner<ApplicationTurnState>({
-    client,
-    prompt_options: {
-        completion_type: 'chat',
-        model: 'gpt-3.5-turbo'
-    }
+    model
 });
 const promptManager = new DefaultPromptManager<ApplicationTurnState>(path.join(__dirname, '../src/prompts'));
 
