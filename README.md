@@ -38,31 +38,28 @@ npm install promptrix
 You'll need to import a couple of components from "alphawave", along with the various prompt parts you want to use from "promptrix". Here's a super simple wave that creates a basic ChatGPT like bot:
 
 ```typescript
-import { OpenAIClient, AlphaWave } from "alphawave";
+import { OpenAIModel, AlphaWave } from "alphawave";
 import { Prompt, SystemMessage, ConversationHistory, UserMessage, Message } from "promptrix";
 
-// Create an OpenAI or AzureOpenAI client
-const client = new OpenAIClient({
-    apiKey: process.env.OpenAIKey!
+// Create an OpenAI model
+const model = new OpenAIModel({
+    apiKey: process.env.OpenAIKey!,
+    completion_type: 'chat',
+    model: 'gpt-3.5-turbo',
+    temperature: 0.9,
+    max_input_tokens: 2000,
+    max_tokens: 1000,
 });
 
 // Create a wave
 const wave = new AlphaWave({
-    client,
+    model,
     prompt: new Prompt([
         new SystemMessage('You are an AI assistant that is friendly, kind, and helpful', 50),
         new ConversationHistory('history', 1.0),
         new UserMessage('{{$input}}', 450)
-    ]),
-    prompt_options: {
-        completion_type: 'chat',
-        model: 'gpt-3.5-turbo',
-        temperature: 0.9,
-        max_input_tokens: 2000,
-        max_tokens: 1000,
-    }
+    ])
 });
-
 ```
 
 One of the key features of Promptrix is its ability to proportionally layout prompts, so this prompt has an overall budget of 2000 input tokens. It will give the `SystemMessage` up to 50 tokens, the `UserMessage` up to 450 tokens, and then the `ConversationHistory` gets 100% of the remaining tokens.
