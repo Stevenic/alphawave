@@ -1,5 +1,5 @@
-# Sentiment Analysis Sample
-This is a simple chat experience that has the model always return its answer as JSON and include sentiment analysis. Using `gpt-3.5-turbo` it shouldn't take too long to get it to return bad or missing JSON so it's a great test of AlphaWaves repair features. To run this sample first copy the file `.env.example` to `.env`. Edit the copied file and set the `OpenAIKey` variable to the value of your personal API key for OpenAI. You can create a new key here:
+# TODO List Function Calling Sample
+This is a simple chat experience that has the model interact with a user to create a todo list. It's a great example of how to use the `gpt-3.5-turbo` model and the function calling feature. To run this sample first copy the file `.env.example` to `.env`. Edit the copied file and set the `OpenAIKey` variable to the value of your personal API key for OpenAI. You can create a new key here:
 
 https://platform.openai.com/account/api-keys
 
