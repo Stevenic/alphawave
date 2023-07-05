@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "declaration": true,
+        "forceConsistentCasingInFileNames": true,
+        "incremental": true,
+        "module": "CommonJS",
+        "outDir": "./lib",
+        "rootDir": "./src",
+        "sourceMap": true,
+        "strict": true,
+        "target": "ES2016",
+        "tsBuildInfoFile": "./lib/.tsbuildinfo"
+    }
+}
