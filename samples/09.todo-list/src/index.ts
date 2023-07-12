@@ -166,8 +166,6 @@ async function chat(botMessage: string) {
         switch (result.status) {
             case 'success':
                 const message = result.message as Message<string>;
-                console.log('message: ', message);
-
                 if (message.function_call) {
                     // Get the function from the list
                     const func = list[message.function_call.name! as keyof TodoList] as Function;
