@@ -7,7 +7,6 @@ import { MemoryFork } from "./MemoryFork";
 import { Colorize } from "./internals";
 import { OpenAIModel } from "./OpenAIModel";
 import { FunctionResponseValidator } from "./FunctionResponseValidator";
-import { Response } from "./Response";
 
 /**
  * Options for an AlphaWave instance.

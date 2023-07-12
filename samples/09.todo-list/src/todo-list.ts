@@ -26,6 +26,12 @@ export class TodoList {
   }
 
   @Logger()
+  public deleteItems() {
+    this.todos = [];
+    return this.todos;
+  }
+
+  @Logger()
   public markItemAsPending(id: number): TodoItem | undefined {
     const todo = this.getItem(id);
     if (todo) todo.markAsPending();

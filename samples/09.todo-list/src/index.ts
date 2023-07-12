@@ -85,6 +85,14 @@ const model = new OpenAIModel({
             }
         },
         {
+            name: 'deleteItems',
+            description: 'Get all todo items',
+            parameters: {
+                type: 'object',
+                properties: {}
+            }
+        },
+        {
             name: 'markItemAsInProgress',
             description: 'Mark a todo item as in progress',
             parameters: {

@@ -42,11 +42,18 @@ export class JSONResponseValidator<TContent = Record<string, any>> implements Pr
         // Parse the response text
         const parsed = Response.parseAllObjects(text);
         if (parsed.length == 0) {
-            return Promise.resolve({
-                type: 'Validation',
-                valid: false,
-                feedback: this.missingJsonFeedback
-            });
+            if (typeof message === 'object' && message.content === null)
+                return Promise.resolve({
+                    type: 'Validation',
+                    valid: true,
+                    value: null
+                });
+            else
+                return Promise.resolve({
+                    type: 'Validation',
+                    valid: false,
+                    feedback: this.missingJsonFeedback
+                });
         }
 
         // Validate the response against the schema
