@@ -40,7 +40,7 @@ export class FunctionResponseValidator implements PromptResponseValidator {
      * @param parameters Optional. JSON Schema for functions parameters.
      * @returns The validator for chaining purposes.
      */
-    public addFunction(name: string, description?: string, parameters?: Schema): this {
+    public addFunction(name: string, parameters: Schema, description?: string): this {
         if (this._functions.has(name)) {
             throw new Error(`FunctionResponseValidator already has an function named "${name}".`);
         }
@@ -81,13 +81,14 @@ export class FunctionResponseValidator implements PromptResponseValidator {
 
             // Validate arguments
             const functionDef = this._functions.get(function_call.name);
-            if (functionDef?.parameters) {
+            if (functionDef) {
                 const validator = new JSONResponseValidator(
                     functionDef.parameters,
                     `No arguments were sent with function call. Call the "${function_call.name}" with required arguments as a valid JSON object.`,
                     `The function arguments had errors. Apply these fixes and call "${function_call.name}" function again:`
                 );
-                const message: Message = { role: 'assistant', content: function_call.arguments ?? '{}' };
+                const args = function_call.arguments === '{}' ? null : function_call.arguments ?? '{}'
+                const message: Message = { role: 'assistant', content: args };
                 const result = await validator.validateResponse(memory, functions, tokenizer, { status: 'success', message }, remaining_attempts);
                 if (!result.valid) {
                     return result;

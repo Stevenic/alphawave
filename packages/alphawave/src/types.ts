@@ -161,5 +161,5 @@ export interface ChatCompletionFunction {
      * [JSON Schema reference](https://json-schema.org/understanding-json-schema/) for documentation
      * about the format.
      */
-    parameters?: Schema;
+    parameters: Schema;
 }
