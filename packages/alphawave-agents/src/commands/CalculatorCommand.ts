@@ -1,6 +1,6 @@
-import { PromptMemory, PromptFunctions, Tokenizer } from "promptrix";
 import { SchemaBasedCommand } from "../SchemaBasedCommand";
 import { Calculator } from "langchain/tools/calculator";
+import { TaskContext } from "../types";
 
 export interface CalculatorCommandInput {
     expression: string;
@@ -26,7 +26,7 @@ export class CalculatorCommand extends SchemaBasedCommand<CalculatorCommandInput
         this._tool = new Calculator();
     }
 
-    public execute(input: CalculatorCommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<string> {
+    public execute(context: TaskContext, input: CalculatorCommandInput): Promise<string> {
         return this._tool.call(input.expression);
     }
 }

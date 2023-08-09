@@ -18,8 +18,8 @@
         "url": "https://github.com"
     },
     "dependencies": {
-        "alphawave": "~0.6.1",
-        "alphawave-agents": "~0.6.1",
+        "alphawave": "~0.7.0",
+        "alphawave-agents": "~0.7.0",
         "langchain": "^0.0.95",
         "promptrix": "^0.4.2",
         "dotenv": "^8.2.0"

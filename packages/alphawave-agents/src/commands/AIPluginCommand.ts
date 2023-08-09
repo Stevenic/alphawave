@@ -1,6 +1,6 @@
-import { PromptMemory, PromptFunctions, Tokenizer } from "promptrix";
 import { SchemaBasedCommand } from "../SchemaBasedCommand";
 import { AIPluginTool  } from "langchain/tools";
+import { TaskContext } from "../types";
 
 export interface APIPluginConfig {
     name: string;
@@ -25,7 +25,7 @@ export class AIPluginCommand extends SchemaBasedCommand<AIPluginCommandInput> {
         this._tool = new AIPluginTool(config);
     }
 
-    public execute(input: AIPluginCommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<string> {
+    public execute(context: TaskContext, input: AIPluginCommandInput): Promise<string> {
         return this._tool.call(input);
     }
 

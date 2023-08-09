@@ -1,5 +1,5 @@
-import { PromptMemory, PromptFunctions, Tokenizer } from "promptrix";
 import { SchemaBasedCommand, CommandSchema } from "../SchemaBasedCommand";
+import { TaskContext } from "../types";
 
 const schema: CommandSchema = {
     type: "object",
@@ -29,8 +29,8 @@ export class SetPropertyCommand extends SchemaBasedCommand<SetPropertyCommandInp
         super(schema, title, description);
     }
 
-    public execute(input: SetPropertyCommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<string> {
-        memory.set(input.property, input.value);
+    public execute(context: TaskContext, input: SetPropertyCommandInput): Promise<string> {
+        context.memory.set(input.property, input.value);
         return Promise.resolve(`the "${input.property}" property was updated`);
     }
 }

@@ -1,9 +1,9 @@
-import { PromptMemory, PromptFunctions, Tokenizer } from "promptrix";
 import { PromptCompletionModel } from "alphawave";
 import { LangChainModel } from "alphawave-langchain";
 import { SchemaBasedCommand } from "../SchemaBasedCommand";
 import { VectorStoreQATool } from "langchain/tools";
 import { VectorStore } from "langchain/vectorstores";
+import { TaskContext } from "../types";
 
 export interface VectorStoreQAConfig {
     name: string;
@@ -36,12 +36,12 @@ export class VectorStoreQACommand extends SchemaBasedCommand<VectorStoreQAComman
         this._config = config;
     }
 
-    public execute(input: VectorStoreQACommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<string> {
+    public execute(context: TaskContext, input: VectorStoreQACommandInput): Promise<string> {
         // Create LLM wrapper for AlphaWave client
         const llm = new LangChainModel(this._config.model, {
-            memory,
-            functions,
-            tokenizer
+            memory: context.memory,
+            functions: context.functions,
+            tokenizer: context.tokenizer
         });
 
         // Create and call tool

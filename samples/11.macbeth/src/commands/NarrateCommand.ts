@@ -1,4 +1,4 @@
-import { SchemaBasedCommand, CommandSchema } from "alphawave-agents";
+import { SchemaBasedCommand, CommandSchema, TaskContext } from "alphawave-agents";
 import { PromptMemory, PromptFunctions, Tokenizer } from "promptrix";
 
 interface NarrateCommandInput {
@@ -29,10 +29,10 @@ export class NarrateCommand extends SchemaBasedCommand<NarrateCommandInput> {
         super(NarrateCommandSchema);
     }
 
-    public execute(input: NarrateCommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<any> {
+    public execute(context: TaskContext, input: NarrateCommandInput): Promise<any> {
         console.log(`\x1b[32m${input.text}\x1b[0m`);
         if (input.performance) {
-            memory.set('performance', input.performance);
+            context.memory.set('performance', input.performance);
         }
         return Promise.resolve(`next line of dialog`);
 

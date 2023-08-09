@@ -2,7 +2,7 @@
     "name": "alphawave-teams",
     "author": "Steven Ickman",
     "description": "A set of new AlphaWave powered planners for the @microsoft/teams-ai library.",
-    "version": "0.6.1",
+    "version": "0.7.0",
     "license": "MIT",
     "keywords": [
         "ai",
@@ -26,7 +26,7 @@
     },
     "dependencies": {
         "@microsoft/teams-ai": "~0.1.0-preview.2",
-        "alphawave": "0.6.0",
+        "alphawave": "0.7.0",
         "botbuilder": "^4.19.3",
         "jsonschema": "1.4.1",
         "promptrix": "^0.4.2"

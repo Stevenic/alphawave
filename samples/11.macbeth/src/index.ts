@@ -56,7 +56,8 @@ const agent = new Agent({
     //     }
     // },
     step_delay: 5000,
-    max_steps: 50,
+    max_steps: 100,
+    max_time: 1000 * 60 * 60 * 1, // 1 hour
     logRepairs: true,
 });
 

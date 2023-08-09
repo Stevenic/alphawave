@@ -106,7 +106,7 @@ export class JSONResponseValidator<TContent = Record<string, any>> implements Pr
                 return `convert "${error.property}" to a ${arg}`;
             case 'anyOf':
                 // field is not one of the allowed types
-                return `convert "${error.property}" to one of the allowed types: ${arg}`;
+                return `convert "${error.property}" to one of the allowed types in the provided schema.`;
             case 'additionalProperties':
                 // field has an extra property
                 return `remove the "${arg}" property from "${error.property}"`;

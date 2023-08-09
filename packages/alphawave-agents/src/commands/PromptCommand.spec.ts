@@ -3,12 +3,11 @@ import { FunctionRegistry, GPT3Tokenizer, Prompt, VolatileMemory, Message } from
 import { TestModel } from "alphawave";
 import { PromptCommand } from "./PromptCommand";
 import { CommandSchema } from "../SchemaBasedCommand";
+import { TestTaskContext } from "../TestTaskContext";
 
 
 describe("PromptCommand", () => {
-    const memory = new VolatileMemory();
-    const functions = new FunctionRegistry();
-    const tokenizer = new GPT3Tokenizer();
+    const context = new TestTaskContext();
     const prompt = new Prompt([]);
     const prompt_response = { role: 'assistant', content: "fact remembered" };
     const model = new TestModel('success', prompt_response);
@@ -41,7 +40,7 @@ describe("PromptCommand", () => {
             const input = {
                 fact: 'test fact'
             };
-            const result = await command.validate(input, memory, functions, tokenizer);
+            const result = await command.validate(input, context.memory, context.functions, context.tokenizer);
             assert.equal(result.valid, true);
             assert.deepEqual(result.value, input);
         });
@@ -51,7 +50,7 @@ describe("PromptCommand", () => {
             const input = {
                 test: 'test fact'
             };
-            const result = await command.validate(input as any, memory, functions, tokenizer);
+            const result = await command.validate(input as any, context.memory, context.functions, context.tokenizer);
             assert.equal(result.valid, false);
             assert.equal(result.feedback, 'The command.input has errors:\n"input": requires property "fact"\n\nTry again.');
         });
@@ -63,7 +62,7 @@ describe("PromptCommand", () => {
             const input = {
                 fact: 'test fact'
             };
-            const result = await command.execute(input, memory, functions, tokenizer);
+            const result = await command.execute(context, input);
             assert.equal(result, 'fact remembered');
         });
     });

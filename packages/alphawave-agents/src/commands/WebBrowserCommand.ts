@@ -3,6 +3,7 @@ import { MemoryFork, AlphaWave } from "alphawave";
 import { SchemaBasedCommand } from "../SchemaBasedCommand";
 import { WebPageSearchCommand, WebPageSearchCommandOptions, WebPageSearchResult } from "./WebPageSearchCommand";
 import { WebUtilities } from "../WebUtilities";
+import { TaskContext } from "../types";
 
 
 export interface WebBrowserCommandOptions extends WebPageSearchCommandOptions {
@@ -13,13 +14,6 @@ export interface WebBrowserCommandOptions extends WebPageSearchCommandOptions {
      * default is `1`.
      */
     max_page_depth?: number;
-
-    /**
-     * Maximum number of milliseconds to search for an answer.
-     * @remarks
-     * Defaults to 30000 (30 seconds).
-     */
-    max_search_time?: number;
 
     /**
      * Whether or not to log activity to the console.
@@ -58,7 +52,7 @@ export class WebBrowserCommand extends SchemaBasedCommand<WebBrowserCommandInput
         this._options = options;
     }
 
-    public async execute(input: WebBrowserCommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<WebPageSearchResult|string> {
+    public async execute(context: TaskContext, input: WebBrowserCommandInput): Promise<WebPageSearchResult|string> {
         try {
             if (input.query) {
                 // Create a WebPageSearch command to use
@@ -67,19 +61,21 @@ export class WebBrowserCommand extends SchemaBasedCommand<WebBrowserCommandInput
                 // Read through n pages looking for an answer
                 let { url, query } = input;
                 const maxDepth = this._options.max_page_depth ?? 1;
-                const maxTime = this._options.max_search_time ?? 30000;
-                const startTime = Date.now();
                 const visited = new Set<string>();
                 for (let i = 0; i < maxDepth; i++) {
                     visited.add(url.toLowerCase());
 
                     // Log activity
                     if (this._options.log_activity) {
-                        console.log(`\x1b[2m[WebBrowser searching ${url}]\x1b[0m`);
+                        if (i == 0) {
+                            context.emitNewThought(`I'm searching this page: ${url}`, this.title, input);
+                        } else {
+                            context.emitNewThought(`I'm searching a link I clicked on: ${url}`, this.title, input);
+                        }
                     }
 
                     // Search page
-                    const result = await search.execute({ url, query }, memory, functions, tokenizer);
+                    const result = await search.execute(context, { url, query });
                     if (result.answered) {
                         // Return result
                         return result;
@@ -88,7 +84,7 @@ export class WebBrowserCommand extends SchemaBasedCommand<WebBrowserCommandInput
                         return result.error;
                     } else if (result.next_page) {
                         // Check for timeout
-                        if (Date.now() - startTime > maxTime) {
+                        if (!context.nextStep()) {
                             return `max search time exceeded`;
                         }
 
@@ -115,7 +111,7 @@ export class WebBrowserCommand extends SchemaBasedCommand<WebBrowserCommandInput
             } else {
                 // Log activity
                 if (this._options.log_activity) {
-                    console.log(`\x1b[2m[WebBrowser summarizing ${input.url}]\x1b[0m`);
+                    context.emitNewThought(`I'm summarizing the page at ${input.url}`, this.title, input);
                 }
 
                 // Load page and extract text
@@ -132,14 +128,14 @@ export class WebBrowserCommand extends SchemaBasedCommand<WebBrowserCommandInput
 
                 // Get the first n tokens of page text for context
                 const maxTokens = (this._options.max_input_tokens ?? 1024) - 200;
-                const encoded = tokenizer.encode(page);
-                const text = encoded.length <= maxTokens ? page : tokenizer.decode(encoded.slice(0, maxTokens));
+                const encoded = context.tokenizer.encode(page);
+                const text = encoded.length <= maxTokens ? page : context.tokenizer.decode(encoded.slice(0, maxTokens));
 
 
                 // Fork memory and set template values
-                const fork = new MemoryFork(memory);
-                fork.set("url", input.url);
-                fork.set("text", text);
+                const fork = context.fork();
+                fork.memory.set("url", input.url);
+                fork.memory.set("text", text);
 
                 // Initialize the prompt
                 const prompt = new UserMessage([
@@ -152,7 +148,7 @@ export class WebBrowserCommand extends SchemaBasedCommand<WebBrowserCommandInput
                 const wave = new AlphaWave({
                     prompt,
                     model: this._options.model,
-                    memory: fork,
+                    memory: fork.memory,
                 });
                 const response = await wave.completePrompt<string>();
                 if (typeof response.message === "string") {

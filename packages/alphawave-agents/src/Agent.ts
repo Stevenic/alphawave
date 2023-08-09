@@ -18,10 +18,11 @@ import { AlphaWave, PromptCompletionModel, PromptResponse } from "alphawave";
 import { StrictEventEmitter } from "strict-event-emitter-types";
 import { EventEmitter } from "events";
 import { v4 as uuidv4 } from "uuid";
-import { TaskResponse, AgentThought, Command } from "./types";
+import { TaskResponse, AgentThought, Command, TaskContext } from "./types";
 import { CommandSchema, SchemaBasedCommand } from "./SchemaBasedCommand";
 import { AgentCommandSection } from "./AgentCommandSection";
 import { AgentCommandValidator } from "./AgentCommandValidator";
+import { AgentTaskContext } from "./AgentTaskContext";
 
 export interface AgentOptions  {
     model: PromptCompletionModel;
@@ -36,6 +37,7 @@ export interface AgentOptions  {
     max_history_messages?: number;
     max_repair_attempts?: number;
     max_steps?: number;
+    max_time?: number;
     memory?: PromptMemory;
     retry_invalid_responses?: boolean;
     step_delay?: number;
@@ -54,6 +56,7 @@ export interface ConfiguredAgentOptions {
     max_history_messages: number;
     max_repair_attempts: number;
     max_steps: number;
+    max_time: number;
     memory: PromptMemory;
     prompt: string|string[]|PromptSection;
     retry_invalid_responses: boolean;
@@ -94,18 +97,27 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
         this._options = Object.assign({
             agent_variable: 'agent',
             context_variable: 'context',
-            functions: new FunctionRegistry(),
             history_variable: 'history',
             input_variable: 'input',
             logRepairs: false,
             max_history_messages: 10,
             max_repair_attempts: 3,
             max_steps: 5,
-            memory: new VolatileMemory(),
+            max_time: 60000,
             retry_invalid_responses: false,
-            step_delay: 0,
-            tokenizer: new GPT3Tokenizer(),
+            step_delay: 0
         }, options) as ConfiguredAgentOptions;
+
+        // Initialize missing components
+        if (!this._options.functions) {
+            this._options.functions = new FunctionRegistry();
+        }
+        if (!this._options.memory) {
+            this._options.memory = new VolatileMemory();
+        }
+        if (!this._options.tokenizer) {
+            this._options.tokenizer = new GPT3Tokenizer();
+        }
     }
 
     public get events(): AgentEmitter {
@@ -151,17 +163,19 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
     }
 
     // Task execution
+    public completeTask(input?: string, context?: TaskContext): Promise<TaskResponse> {
+        return this.completeTaskImpl(context ?? new AgentTaskContext(this), input);
+    }
 
-    public async completeTask(input?: string, agentId?: string, executeInitialThought: boolean = false): Promise<TaskResponse> {
+    private async completeTaskImpl(context: TaskContext, input?: string, agentId?: string, executeInitialThought: boolean = false): Promise<TaskResponse> {
         // Initialize the input to the next step
         let stepInput = input ?? this.memory.get(this.options.input_variable);
 
         // Dispatch to child agent if needed
-        let step = 0;
         const state = this.getAgentState(agentId);
         if (state.child) {
             const childAgent = this.getCommand(state.child.title) as Agent;
-            const response = await childAgent.completeTask(input, state.child.agentId);
+            const response = await childAgent.completeTaskImpl(context, input, state.child.agentId);
             if (response.status !== 'success') {
                 return response;
             }
@@ -173,40 +187,54 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
             // Use agents response as input to the next step
             // We don't know how many steps the child agent took, so we'll just assume it took one
             stepInput = response.message;
-            step = 1;
+            context.nextStep();
             executeInitialThought = false;
         }
 
         // Start main task loop
-        while (step < this.options.max_steps) {
+        while (context.shouldContinue()) {
             // Wait for step delay
-            if (step > 0 && this.options.step_delay > 0) {
+            if (context.step > 0 && this.options.step_delay > 0) {
                 await new Promise(resolve => setTimeout(resolve, this.options.step_delay));
             }
 
             // Execute next step
-            const result = await this.executeNextStep(stepInput, agentId, executeInitialThought);
+            const result = await this.executeNextStep(context, stepInput, agentId, executeInitialThought);
             if (typeof result === 'string') {
                 stepInput = result;
             } else {
                 return result;
             }
 
-            step++;
+            context.nextStep();
             executeInitialThought = false;
         }
 
-        // Return too many steps
-        return {
-            type: "TaskResponse",
-            status: "too_many_steps",
-            message: "The current task has taken too many steps."
-        };
+        // Return reason for quitting
+        if (context.status == 'cancelled') {
+            return {
+                type: "TaskResponse",
+                status: "cancelled",
+                message: "The current task was cancelled."
+            };
+        } else if (context.status == 'too_many_steps') {
+            return {
+                type: "TaskResponse",
+                status: "too_many_steps",
+                message: "The current task has taken too many steps."
+            };
+        } else {
+            return {
+                type: "TaskResponse",
+                status: "too_much_time",
+                message: "The current task has taken too much time."
+            };
+        }
     }
 
     // Agent as Commands
 
-    public execute(input: AgentCommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<TaskResponse> {
+    public execute(context: TaskContext, input: AgentCommandInput): Promise<TaskResponse> {
         // Initialize the agents state
         const agentId = input.agentId;
         const state = this.getAgentState(agentId);
@@ -214,7 +242,7 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
         this.setAgentState(state, agentId);
 
         // Start the task
-        return this.completeTask(undefined, agentId, true);
+        return this.completeTaskImpl(context, undefined, agentId, true);
     }
 
     public getAgentState(agentId?: string): AgentState {
@@ -235,7 +263,7 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
         return agentId ? `${this.options.history_variable}-${agentId}` : this.options.history_variable;
     }
 
-    private async executeNextStep(input?: string, agentId?: string, executeInitialThought: boolean = false): Promise<TaskResponse|string> {
+    private async executeNextStep(context: TaskContext, input?: string, agentId?: string, executeInitialThought: boolean = false): Promise<TaskResponse|string> {
         try {
             const state = this.getAgentState(agentId);
 
@@ -325,7 +353,7 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
             const message: Message<AgentThought> = response!.message as Message<AgentThought>;
             const thought = message.content!;
             this._events.emit('newThought', thought);
-            const result = await this.executeCommand(state, thought);
+            const result = await this.executeCommand(context, state, thought);
 
             // Check for task result and error
             const taskResponse: TaskResponse|undefined = typeof result === 'object' && result.type == 'TaskResponse' ? result : undefined;
@@ -335,6 +363,8 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
                     case 'invalid_response':
                     case 'rate_limited':
                     case 'too_many_steps':
+                    case 'too_much_time':
+                    case 'cancelled':
                     case 'too_long':
                         return taskResponse;
                 }
@@ -363,7 +393,7 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
         }
     }
 
-    private async executeCommand(state: AgentState, thought: AgentThought): Promise<any> {
+    private async executeCommand(context: TaskContext, state: AgentState, thought: AgentThought): Promise<any> {
         // Get command
         const command = this._commands.get(thought.command.name) as Command;
         const input = thought.command.input ?? {};
@@ -372,7 +402,7 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
             const agentId = uuidv4();
             const childAgent = command as Agent;
             this.events.emit('beforeCommand', childAgent, input['input']);
-            const response = await childAgent.execute(input['input'], this.memory, this.functions, this.tokenizer);
+            const response = await childAgent.execute(context, input['input']);
             this.events.emit('afterCommand', childAgent, input['input'], response);
             switch (response.status) {
                 case 'success':
@@ -392,7 +422,7 @@ export class Agent extends SchemaBasedCommand<AgentCommandInput> {
         } else {
             // Execute command and return result
             this.events.emit('beforeCommand', command, input);
-            const response = await command.execute(input, this.memory, this.functions, this.tokenizer);
+            const response = await command.execute(context, input);
             this.events.emit('afterCommand', command, input, response);
             return response;
         }

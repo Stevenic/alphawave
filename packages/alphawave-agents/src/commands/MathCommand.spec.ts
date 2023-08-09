@@ -1,12 +1,11 @@
 import { strict as assert } from "assert";
 import { FunctionRegistry, GPT3Tokenizer, VolatileMemory } from "promptrix";
 import { MathCommand } from "./MathCommand";
+import { TestTaskContext } from "../TestTaskContext";
 
 
 describe("MathCommand", () => {
-    const memory = new VolatileMemory();
-    const functions = new FunctionRegistry();
-    const tokenizer = new GPT3Tokenizer();
+    const context = new TestTaskContext();
 
     describe("constructor", () => {
         it("should create a MathCommand with default params", () => {
@@ -32,7 +31,7 @@ describe("MathCommand", () => {
             const input = {
                 code: '7 + 3'
             };
-            const result = await command.validate(input, memory, functions, tokenizer);
+            const result = await command.validate(input, context.memory, context.functions, context.tokenizer);
             assert.equal(result.valid, true);
             assert.deepEqual(result.value, input);
         });
@@ -42,7 +41,7 @@ describe("MathCommand", () => {
             const input = {
                 math: '7 + 3'
             };
-            const result = await command.validate(input as any, memory, functions, tokenizer);
+            const result = await command.validate(input as any, context.memory, context.functions, context.tokenizer);
             assert.equal(result.valid, false);
             assert.equal(result.feedback, 'The command.input has errors:\n"input": requires property "code"\n\nTry again.');
         });
@@ -54,7 +53,7 @@ describe("MathCommand", () => {
             const input = {
                 code: '7 + 3'
             };
-            const result = await command.execute(input, memory, functions, tokenizer);
+            const result = await command.execute(context, input);
             assert.equal(result, 10);
         });
 
@@ -63,7 +62,7 @@ describe("MathCommand", () => {
             const input = {
                 code: '7 +'
             };
-            const result = await command.execute(input, memory, functions, tokenizer);
+            const result = await command.execute(context, input);
             assert.deepEqual(result, { type: 'TaskResponse', status: 'error', message: 'SyntaxError: Unexpected end of input' });
         });
     });

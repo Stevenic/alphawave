@@ -1,6 +1,6 @@
-import { PromptMemory, PromptFunctions, Tokenizer } from "promptrix";
 import { SchemaBasedCommand } from "../SchemaBasedCommand";
 import { SerpAPI, SerpAPIParameters } from "langchain/tools";
+import { TaskContext } from "../types";
 
 export interface SerpAPICommandInput {
     query: string;
@@ -26,7 +26,7 @@ export class SerpAPICommand extends SchemaBasedCommand<SerpAPICommandInput> {
         this._tool = new SerpAPI(apiKey, params, baseUrl);
     }
 
-    public execute(input: SerpAPICommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<string> {
+    public execute(context: TaskContext, input: SerpAPICommandInput): Promise<string> {
         return this._tool.call(input.query);
     }
 }

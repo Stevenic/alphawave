@@ -1,6 +1,5 @@
-import { PromptMemory, PromptFunctions, Tokenizer } from "promptrix";
 import { SchemaBasedCommand, CommandSchema } from "../SchemaBasedCommand";
-import { TaskResponse } from "../types";
+import { TaskContext, TaskResponse } from "../types";
 
 const schema: CommandSchema = {
     type: "object",
@@ -24,7 +23,7 @@ export class CompleteTaskCommand extends SchemaBasedCommand<CompleteTaskCommandI
         super(schema, title, description);
     }
 
-    public execute(input: CompleteTaskCommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<TaskResponse> {
+    public execute(context: TaskContext, input: CompleteTaskCommandInput): Promise<TaskResponse> {
         return Promise.resolve({
             type: "TaskResponse",
             status: "success",

@@ -1,4 +1,4 @@
-import { PromptMemory, PromptFunctions, Tokenizer, UserMessage } from "promptrix";
+import { Tokenizer, UserMessage } from "promptrix";
 import { PromptCompletionModel, EmbeddingsModel, MemoryFork, AlphaWave, JSONResponseValidator } from "alphawave";
 import { LangChainEmbeddings } from "alphawave-langchain";
 import { AxiosRequestConfig } from "axios";
@@ -7,6 +7,7 @@ import { MemoryVectorStore } from "langchain/vectorstores/memory";
 import { Document } from "langchain/document";
 import { SchemaBasedCommand } from "../SchemaBasedCommand";
 import { WebUtilities } from "../WebUtilities";
+import { TaskContext } from "../types";
 
 export type WebPageParseMode = "text" | "markdown" | "html";
 
@@ -58,7 +59,7 @@ export class WebPageSearchCommand extends SchemaBasedCommand<WebPageSearchComman
         this._options = options;
     }
 
-    public async execute(input: WebPageSearchCommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<WebPageSearchResult> {
+    public async execute(context: TaskContext, input: WebPageSearchCommandInput): Promise<WebPageSearchResult> {
         try {
             // Load page and extract text
             let page = '';
@@ -74,10 +75,10 @@ export class WebPageSearchCommand extends SchemaBasedCommand<WebPageSearchComman
 
             // Get semantically relevant text to use as context
             const maxInputTokens = this._options.max_input_tokens ?? 1024;
-            const text = await this.getTextChunks(page, input, tokenizer, maxInputTokens - 200);
+            const text = await this.getTextChunks(page, input, context.tokenizer, maxInputTokens - 200);
 
             // Fork memory and set template values
-            const fork = new MemoryFork(memory);
+            const fork = new MemoryFork(context.memory);
             fork.set("text", text);
             fork.set("query", input.query);
 

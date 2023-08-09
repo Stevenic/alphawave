@@ -1,6 +1,6 @@
-import { PromptMemory, PromptFunctions, Tokenizer } from "promptrix";
 import { SchemaBasedCommand } from "../SchemaBasedCommand";
 import { IFTTTWebhook } from "langchain/tools";
+import { TaskContext } from "../types";
 
 export interface IFTTTWebhookCommandInput {
     input: string;
@@ -26,7 +26,7 @@ export class IFTTTWebhookCommand extends SchemaBasedCommand<IFTTTWebhookCommandI
         this._tool = new IFTTTWebhook(url, name, description);
     }
 
-    public execute(input: IFTTTWebhookCommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<string> {
+    public execute(context: TaskContext, input: IFTTTWebhookCommandInput): Promise<string> {
         return this._tool.call(input);
     }
 }

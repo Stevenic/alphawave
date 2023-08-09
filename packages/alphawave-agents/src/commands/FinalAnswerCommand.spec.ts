@@ -1,12 +1,11 @@
 import { strict as assert } from "assert";
 import { FunctionRegistry, GPT3Tokenizer, VolatileMemory } from "promptrix";
 import { FinalAnswerCommand } from "./FinalAnswerCommand";
+import { TestTaskContext } from "../TestTaskContext";
 
 
 describe("FinalAnswerCommand", () => {
-    const memory = new VolatileMemory();
-    const functions = new FunctionRegistry();
-    const tokenizer = new GPT3Tokenizer();
+    const context = new TestTaskContext();
 
     describe("constructor", () => {
         it("should create a FinalAnswerCommand with default params", () => {
@@ -32,7 +31,7 @@ describe("FinalAnswerCommand", () => {
             const input = {
                 answer: 'final answer'
             };
-            const result = await command.validate(input, memory, functions, tokenizer);
+            const result = await command.validate(input, context.memory, context.functions, context.tokenizer);
             assert.equal(result.valid, true);
             assert.deepEqual(result.value, input);
         });
@@ -42,7 +41,7 @@ describe("FinalAnswerCommand", () => {
             const input = {
                 foo: 'final answer'
             };
-            const result = await command.validate(input as any, memory, functions, tokenizer);
+            const result = await command.validate(input as any, context.memory, context.functions, context.tokenizer);
             assert.equal(result.valid, false);
             assert.equal(result.feedback, 'The command.input has errors:\n"input": requires property "answer"\n\nTry again.');
         });
@@ -54,7 +53,7 @@ describe("FinalAnswerCommand", () => {
             const input = {
                 answer: 'final answer'
             };
-            const result = await command.execute(input, memory, functions, tokenizer);
+            const result = await command.execute(context, input);
             assert.deepEqual(result, {
                 type: "TaskResponse",
                 status: "success",

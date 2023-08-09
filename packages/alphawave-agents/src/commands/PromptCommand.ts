@@ -1,11 +1,11 @@
-import { PromptMemory, PromptFunctions, Tokenizer, Utilities } from "promptrix";
-import { AlphaWave, AlphaWaveOptions, MemoryFork } from "alphawave";
+import { AlphaWave, AlphaWaveOptions } from "alphawave";
 import { SchemaBasedCommand, CommandSchema } from "../SchemaBasedCommand";
-import { TaskResponse } from "../types";
+import { TaskContext, TaskResponse } from "../types";
+import { Utilities } from "promptrix";
 
 export interface PromptCommandOptions extends AlphaWaveOptions {
     schema: CommandSchema;
-    parseResponse?: (response: string, input:Record<string, any>, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer) => Promise<any>;
+    parseResponse?: (context: TaskContext, response: string, input:Record<string, any>) => Promise<any>;
 }
 
 export class PromptCommand extends SchemaBasedCommand {
@@ -16,19 +16,19 @@ export class PromptCommand extends SchemaBasedCommand {
         this.options = options;
     }
 
-    public async execute(input: Record<string, any>, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<TaskResponse|string> {
+    public async execute(context: TaskContext, input: Record<string, any>): Promise<TaskResponse|string> {
         // Fork memory and copy the input into the fork
-        const fork = new MemoryFork(memory);
+        const fork = context.fork();
         const keys = Object.keys(input);
         for (const key of keys) {
-            fork.set(key, input[key]);
+            fork.memory.set(key, input[key]);
         }
 
         // Create a wave and send it
         const options: AlphaWaveOptions = Object.assign({
-            memory: fork,
-            functions: functions,
-            tokenizer: tokenizer
+            memory: fork.memory,
+            functions: fork.functions,
+            tokenizer: fork.tokenizer
         }, this.options);
         const wave = new AlphaWave(options);
         const response = await wave.completePrompt();
@@ -37,8 +37,8 @@ export class PromptCommand extends SchemaBasedCommand {
         const message = typeof response.message == "object" ? response.message.content : response.message;
         if (response.status === "success") {
             // Return the response
-            const parsed = this.options.parseResponse ? await this.options.parseResponse(message, input, memory, functions, tokenizer) : message;
-            return Utilities.toString(tokenizer, parsed);
+            const parsed = this.options.parseResponse ? await this.options.parseResponse(fork, message, input) : message;
+            return Utilities.toString(fork.tokenizer, parsed);
         } else {
             // Return the error
             return {

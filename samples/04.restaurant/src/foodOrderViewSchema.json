@@ -77,7 +77,7 @@
                             },
                             "addedIngredients": {
                                 "type": "array",
-                                "description": "iingredients requested (examples: parmesan, croutons)",
+                                "description": "ingredients requested (examples: parmesan, croutons)",
                                 "items": { "type": "string" }
                             },
                             "removedIngredients": {

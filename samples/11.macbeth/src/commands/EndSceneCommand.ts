@@ -1,5 +1,4 @@
-import { SchemaBasedCommand, CommandSchema, TaskResponse } from "alphawave-agents";
-import { PromptMemory, PromptFunctions, Tokenizer } from "promptrix";
+import { SchemaBasedCommand, CommandSchema, TaskResponse, TaskContext } from "alphawave-agents";
 
 interface EndSceneCommandInput {
     question: string;
@@ -24,10 +23,10 @@ export class EndSceneCommand extends SchemaBasedCommand<EndSceneCommandInput> {
         super(EndSceneCommandSchema);
     }
 
-    public execute(input: EndSceneCommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<TaskResponse> {
+    public execute(context: TaskContext, input: EndSceneCommandInput): Promise<TaskResponse> {
         // Delete the dialog for the current scene
-        memory.set('dialog', []);
-        memory.set('performance', undefined);
+        context.memory.set('dialog', []);
+        context.memory.set('performance', undefined);
 
         // Prompt user with questions
         return Promise.resolve({ type: 'TaskResponse', status: 'success', message: input.question });

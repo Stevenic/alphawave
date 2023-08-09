@@ -1,6 +1,5 @@
-import { PromptMemory, PromptFunctions, Tokenizer } from "promptrix";
 import { SchemaBasedCommand, CommandSchema } from "../SchemaBasedCommand";
-import { TaskResponse } from "../types";
+import { TaskContext, TaskResponse } from "../types";
 
 const schema: CommandSchema = {
     type: "object",
@@ -25,7 +24,7 @@ export class MathCommand extends SchemaBasedCommand<MathCommandInput> {
         super(schema, title, description);
     }
 
-    public execute(input: MathCommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<any> {
+    public execute(context: TaskContext, input: MathCommandInput): Promise<any> {
         try {
             return Promise.resolve(eval(input.code));
         } catch (err: unknown) {

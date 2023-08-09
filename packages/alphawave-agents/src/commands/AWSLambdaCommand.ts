@@ -1,6 +1,7 @@
 import { PromptMemory, PromptFunctions, Tokenizer } from "promptrix";
 import { SchemaBasedCommand } from "../SchemaBasedCommand";
 import { AWSLambda } from "langchain/tools/aws_lambda";
+import { TaskContext } from "../types";
 
 export interface AWSLambdaConfig {
     name: string;
@@ -37,7 +38,7 @@ export class AWSLambdaCommand extends SchemaBasedCommand<AWSLambdaCommandInput> 
         this._tool = new AWSLambda(config);
     }
 
-    public execute(input: AWSLambdaCommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<string> {
+    public execute(context: TaskContext, input: AWSLambdaCommandInput): Promise<string> {
         return this._tool.call(input);
     }
 }

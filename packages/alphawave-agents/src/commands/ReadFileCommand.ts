@@ -1,7 +1,7 @@
-import { PromptMemory, PromptFunctions, Tokenizer } from "promptrix";
 import { SchemaBasedCommand } from "../SchemaBasedCommand";
 import { ReadFileTool } from "langchain/tools";
 import { BaseFileStore } from "langchain/schema";
+import { TaskContext } from "../types";
 
 export interface ReadFileConfig {
     store: BaseFileStore;
@@ -31,7 +31,7 @@ export class ReadFileCommand extends SchemaBasedCommand<ReadFileCommandInput> {
         this._tool = new ReadFileTool(config);
     }
 
-    public execute(input: ReadFileCommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<string> {
+    public execute(context: TaskContext, input: ReadFileCommandInput): Promise<string> {
         return this._tool.call(input.file_path);
     }
 }

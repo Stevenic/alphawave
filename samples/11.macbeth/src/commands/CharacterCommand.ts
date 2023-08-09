@@ -1,6 +1,6 @@
 import { OpenAIModel } from "alphawave";
-import { PromptCommand, CommandSchema } from "alphawave-agents";
-import { Prompt, PromptMemory, SystemMessage } from "promptrix";
+import { PromptCommand, CommandSchema, TaskContext } from "alphawave-agents";
+import { Prompt, SystemMessage } from "promptrix";
 
 const CharacterCommandSchema: CommandSchema = {
     type: "object",
@@ -32,7 +32,7 @@ export class CharacterCommand extends PromptCommand {
                 new SystemMessage(`You are the character of {{$name}} from Macbeth.\n\nScene:\n{{$scene}}\n\nDialog:\n{{$dialog}}\n\nRespond with your next line of dialog formatted as "{{$name}}: <line of dialog>".\n\n{{$name}}:`)
             ]),
             schema: CharacterCommandSchema,
-            parseResponse: async (response: string, input: Record<string, any>, memory: PromptMemory) => {
+            parseResponse: async (context: TaskContext, response: string, input: Record<string, any>) => {
                 // Trim and combine dialog.
                 response = response.split('\n\n').join('\n');
                 response = response.split('\n').map(line => line.trim()).join(' ');
@@ -42,9 +42,9 @@ export class CharacterCommand extends PromptCommand {
 
                 // Add line to dialog
                 response = `${input.name}: ${response}`;
-                const dialog = memory.get('dialog') ?? [];
+                const dialog = context.memory.get('dialog') ?? [];
                 dialog.push(response);
-                memory.set('dialog', dialog);
+                context.memory.set('dialog', dialog);
                 return response;
             }
         }, name, description);

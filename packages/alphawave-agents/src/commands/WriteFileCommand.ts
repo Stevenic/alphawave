@@ -1,7 +1,7 @@
-import { PromptMemory, PromptFunctions, Tokenizer } from "promptrix";
 import { SchemaBasedCommand } from "../SchemaBasedCommand";
 import { WriteFileTool } from "langchain/tools";
 import { BaseFileStore } from "langchain/schema";
+import { TaskContext } from "../types";
 
 export interface WriteFileConfig {
     store: BaseFileStore;
@@ -35,7 +35,7 @@ export class WriteFileCommand extends SchemaBasedCommand<WriteFileCommandInput> 
         this._tool = new WriteFileTool(config);
     }
 
-    public execute(input: WriteFileCommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<string> {
+    public execute(context: TaskContext, input: WriteFileCommandInput): Promise<string> {
         return this._tool.call(input);
     }
 }

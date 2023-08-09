@@ -1,7 +1,7 @@
 import { PromptFunctions, PromptMemory, Tokenizer  } from "promptrix";
 import { Validation } from "alphawave";
 import { Validator, Schema  } from "jsonschema";
-import { Command } from "./types";
+import { Command, TaskContext } from "./types";
 
 export interface CommandSchema extends Schema {
     type: "object";
@@ -54,7 +54,7 @@ export abstract class SchemaBasedCommand<TInput = Record<string, any>> implement
         return this._title ?? this._schema.title;
     }
 
-    public abstract execute(input: TInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<any>;
+    public abstract execute(context: TaskContext, input: TInput): Promise<any>;
 
     public validate(input: TInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<Validation<TInput>> {
         // First clean the input

@@ -1,8 +1,8 @@
 import { MemoryFork } from "alphawave";
-import { PromptMemory, PromptFunctions, Tokenizer } from "promptrix";
 import { SchemaBasedCommand } from "../SchemaBasedCommand";
 import axios, { AxiosInstance } from 'axios';
 import { WebBrowserCommand, WebBrowserCommandOptions } from "./WebBrowserCommand";
+import { TaskContext } from "../types";
 
 const DEFAULT_MAX_TOKENS = 250;
 const DEFAULT_MAX_SEARCH_TIME = 60000;
@@ -62,7 +62,7 @@ export class BingSearchCommand extends SchemaBasedCommand<BingSearchCommandInput
         }
     }
 
-    public async execute(input: BingSearchCommandInput, memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<string> {
+    public async execute(context: TaskContext, input: BingSearchCommandInput): Promise<string> {
         // Fetch the search results
         let results: SearchResult[] = [];
         try {
@@ -78,7 +78,7 @@ export class BingSearchCommand extends SchemaBasedCommand<BingSearchCommandInput
 
         // Check for deep search
         if (this._deepSearch) {
-            return await this.executeDeepSearch(input.query, results, memory, functions, tokenizer);
+            return await this.executeDeepSearch(context, input.query, results);
         }
 
         // Generate formatted results
@@ -88,7 +88,7 @@ export class BingSearchCommand extends SchemaBasedCommand<BingSearchCommandInput
         for (const result of results) {
             // Generate entry
             const entry = `[${result.name}](${result.url})` + (this._options.include_snippets ? `\n${result.snippet}\n` : ``);
-            const length = tokenizer.encode(entry).length + (tokens > 0 ? 1 : 0);
+            const length = context.tokenizer.encode(entry).length + (tokens > 0 ? 1 : 0);
 
             // Check for max tokens
             if (tokens + length > maxTokens) {
@@ -154,28 +154,25 @@ export class BingSearchCommand extends SchemaBasedCommand<BingSearchCommandInput
         return output;
     }
 
-    private async executeDeepSearch(query: string, results: SearchResult[], memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer): Promise<string> {
-        const startTime = Date.now();
-        const stopTime = startTime + (this._deepSearch!.max_search_time ?? DEFAULT_MAX_SEARCH_TIME);
-
+    private async executeDeepSearch(context: TaskContext, query: string, results: SearchResult[]): Promise<string> {
         // Fork the memory for the deep search
-        const fork = new MemoryFork(memory);
+        const fork = context.fork();
         for (const result of results) {
+            // Should we continue?
+            if (!fork.nextStep()) {
+                return "Max search time exceeded";
+            }
+
             // Create a WebBrowser command
-            const options = Object.assign({}, this._deepSearch, { max_search_time: stopTime - Date.now() });
+            const options = Object.assign({}, this._deepSearch);
             const webBrowser = new WebBrowserCommand(options);
 
             // Read the page
-            const answer = await webBrowser.execute({ url: result.url, query: query }, fork, functions, tokenizer);
+            const answer = await webBrowser.execute(fork, { url: result.url, query: query });
             if (typeof answer === "string") {
                 return answer;
             } else if (answer.answered && answer.answer) {
                 return `url: ${result.url}\n\n${answer.answer}`;
-            }
-
-            // Check for max search time
-            if (Date.now() > stopTime) {
-                return "Max search time exceeded";
             }
         }
 
