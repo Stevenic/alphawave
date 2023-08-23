@@ -16,7 +16,7 @@ const model = new OpenAIModel({
     temperature: 0.0,
     max_input_tokens: 2200,
     max_tokens: 800,
-    // logRequests: true,
+    logRequests: true,
 });
 
 const embeddings = new OpenAIEmbeddings({
@@ -30,15 +30,14 @@ const agent = new Agent({
     model,
     prompt: [
         `Use the ask command to prompt the user for their question.`,
-        `Send a query to the bingSearch command to find the users answer.`,
-        `Always use bingSearch to verify that your answers are accurate.`,
+        `Send the full text of the users question to the bingSearch command to find the users answer.`,
         `When showing lists to the user, show a bulleted list.`,
     ],
     initial_thought: {
         "thoughts": {
             "thought":"I need to ask the user what they want to know",
             "reasoning":"I don't have any information to start with, so I need to get some input from the user",
-            "plan":"- ask the user a question\n- use bingSearch to find an answer\n- use finalAnswer to generate a response."
+            "plan":"- ask the user a question\n- send the users full question to bingSearch to find an answer\n- use finalAnswer to generate a response."
         },
         "command": {
             "name":"ask",
@@ -46,6 +45,7 @@ const agent = new Agent({
         }
     },
     max_steps: 10,
+    max_time: 60000,
     //logRepairs: true,
 });
 
@@ -58,7 +58,6 @@ agent.addCommand(new BingSearchCommand({
         model,
         embeddings,
         max_input_tokens: 2200,
-        max_search_time: 60000,
         parse_mode: 'text',
         log_activity: true,
     }

@@ -1,5 +1,5 @@
 import { strict as assert } from "assert";
-import { FunctionRegistry, GPT3Tokenizer, Prompt, VolatileMemory, Message } from "promptrix";
+import { Prompt } from "promptrix";
 import { TestModel } from "alphawave";
 import { PromptCommand } from "./PromptCommand";
 import { CommandSchema } from "../SchemaBasedCommand";

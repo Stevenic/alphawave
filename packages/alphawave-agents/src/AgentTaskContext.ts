@@ -1,7 +1,7 @@
 import { PromptFunctions, PromptMemory, Tokenizer } from "promptrix";
 import { Agent } from "./Agent";
 import { AgentThought, TaskContext, TaskResponseStatus } from "./types";
-import { MemoryFork } from "alphawave";
+import { ForkedTaskContext } from "./ForkedTaskContext";
 
 export class AgentTaskContext implements TaskContext {
     private _cancelled = false;
@@ -92,7 +92,7 @@ export class AgentTaskContext implements TaskContext {
     }
 
     public fork(): TaskContext {
-        return new AgentTaskContext(this.agent, new MemoryFork(this.memory));
+        return new ForkedTaskContext(this);
     }
 
     public nextStep(): boolean {

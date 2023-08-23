@@ -79,20 +79,16 @@ export class WebPageSearchCommand extends SchemaBasedCommand<WebPageSearchComman
 
             // Fork memory and set template values
             const fork = new MemoryFork(context.memory);
+            fork.set("url", input.url);
             fork.set("text", text);
             fork.set("query", input.query);
 
             // Initialize the prompt
             const prompt = new UserMessage([
+                `page url:\n{{$url}}\n`,
                 `page text:\n{{$text}}\n`,
                 `query:\n{{$query}}\n`,
-                `steps:`,
-                `- think about a strategy for answering the query given the text or links to other pages in the text.`,
-                `- can the text can answer the query?`,
-                `- if not what's the best link in the text to search next? The link can't be for teh same page and MUST come from the text.`,
-                `- return either the answer or relevant links using this JSON structure {"answered": <true|false>, "answer": "<detailed answer to question>", "next_page": "<page to search next>"}\n`,
-                `Do steps 1, 2, 3 & 4 and show your work for each step.\n`,
-                `1:  think about a strategy for answering the query given the text or links to other pages in the text.`,
+                `Return either the answer or the best page to search next using this JSON structure {"answered": <true|false>, "answer": "<detailed answer to question>", "next_page": "<url of page to search next>"}\n`,
             ].join('\n'));
 
             // Create a response validator for answer evaluator

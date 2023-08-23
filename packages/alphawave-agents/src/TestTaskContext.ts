@@ -1,7 +1,6 @@
 import { PromptFunctions, PromptMemory, Tokenizer, FunctionRegistry, VolatileMemory, GPT3Tokenizer } from "promptrix";
-import { Agent } from "./Agent";
 import { AgentThought, TaskContext, TaskResponseStatus } from "./types";
-import { MemoryFork } from "alphawave";
+import { ForkedTaskContext } from "./ForkedTaskContext";
 
 export interface TestTaskContextOptions {
     max_steps?: number;
@@ -105,7 +104,7 @@ export class TestTaskContext implements TaskContext {
     }
 
     public fork(): TaskContext {
-        return new TestTaskContext(this._options, new MemoryFork(this.memory));
+        return new ForkedTaskContext(this);
     }
 
     public nextStep(): boolean {

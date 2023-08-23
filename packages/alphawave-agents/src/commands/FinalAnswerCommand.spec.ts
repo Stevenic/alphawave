@@ -1,5 +1,4 @@
 import { strict as assert } from "assert";
-import { FunctionRegistry, GPT3Tokenizer, VolatileMemory } from "promptrix";
 import { FinalAnswerCommand } from "./FinalAnswerCommand";
 import { TestTaskContext } from "../TestTaskContext";
 

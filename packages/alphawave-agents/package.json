@@ -2,7 +2,7 @@
     "name": "alphawave-agents",
     "author": "Steven Ickman",
     "description": "A agent framework built on top of AlphaWave.",
-    "version": "0.7.0",
+    "version": "0.7.2",
     "license": "MIT",
     "keywords": [
         "ai",
