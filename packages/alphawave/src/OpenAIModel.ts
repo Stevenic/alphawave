@@ -123,6 +123,22 @@ export interface BaseOpenAIModelOptions {
 /**
  * Options for configuring an `OpenAIModel` to call an OpenAI hosted model.
  */
+export interface OSSModelOptions extends BaseOpenAIModelOptions {
+    /**
+     * Model to use for completion.
+     * @remarks
+     * For Azure OpenAI this is the name of the deployment to use.
+     */
+    model: string;
+    /**
+     * Optional. Endpoint to use when calling the OSS API.
+     */
+    endpoint?: string;
+}
+
+/**
+ * Options for configuring an `OpenAIModel` to call an OpenAI hosted model.
+ */
 export interface OpenAIModelOptions extends BaseOpenAIModelOptions {
     /**
      * API key to use when calling the OpenAI API.
@@ -183,19 +199,20 @@ export interface AzureOpenAIModelOptions extends BaseOpenAIModelOptions {
 export class OpenAIModel implements PromptCompletionModel {
     private readonly _httpClient: AxiosInstance;
     private readonly _useAzure: boolean;
+    private readonly _useOSS: boolean;
 
     private readonly UserAgent = 'AlphaWave';
 
     /**
      * Options the client was configured with.
      */
-    public readonly options: OpenAIModelOptions|AzureOpenAIModelOptions;
+    public readonly options: OSSModelOptions|OpenAIModelOptions|AzureOpenAIModelOptions;
 
     /**
      * Creates a new `OpenAIClient` instance.
      * @param options Options for configuring an `OpenAIClient`.
      */
-    public constructor(options: OpenAIModelOptions|AzureOpenAIModelOptions) {
+    public constructor(options: OSSModelOptions|OpenAIModelOptions|AzureOpenAIModelOptions) {
         // Check for azure config
         if ((options as AzureOpenAIModelOptions).azureApiKey) {
             this._useAzure = true;
@@ -215,7 +232,14 @@ export class OpenAIModel implements PromptCompletionModel {
             }
 
             this.options.azureEndpoint = endpoint;
-        } else {
+        } 
+        else if ((options as OSSModelOptions).model) {
+            this._useOSS = true;
+            this.options = Object.assign({
+                retryPolicy: [2000, 5000]
+            }, options) as OSSModelOptions;
+        }
+        else {
             this._useAzure = false;
             this.options = Object.assign({
                 retryPolicy: [2000, 5000]
