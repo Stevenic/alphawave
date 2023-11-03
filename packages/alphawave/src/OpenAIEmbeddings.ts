@@ -25,6 +25,24 @@ export interface BaseOpenAIEmbeddingsOptions {
     requestConfig?: AxiosRequestConfig;
 }
 
+
+/**
+ * Options for configuring an `OpenAIEmbeddings` to generate embeddings using an OSS hosted model.
+ */
+export interface OSSEmbeddingsOptions extends BaseOpenAIEmbeddingsOptions {
+    /**
+     * Model to use for completion.
+     */
+    ossModel: string;
+
+    /**
+     * Optional. Endpoint to use when calling the OpenAI API.
+     * @remarks
+     * For Azure OpenAI this is the deployment endpoint.
+     */
+    ossEndpoint: string;
+}
+
 /**
  * Options for configuring an `OpenAIEmbeddings` to generate embeddings using an OpenAI hosted model.
  */
@@ -87,23 +105,23 @@ export interface AzureOpenAIEmbeddingsOptions extends BaseOpenAIEmbeddingsOption
  */
 export class OpenAIEmbeddings implements EmbeddingsModel {
     private readonly _httpClient: AxiosInstance;
-    private readonly _useAzure: boolean;
+    private readonly _clientType: ClientType;
 
     private readonly UserAgent = 'AlphaWave';
 
     /**
      * Options the client was configured with.
      */
-    public readonly options: OpenAIEmbeddingsOptions|AzureOpenAIEmbeddingsOptions;
+    public readonly options: OSSEmbeddingsOptions|OpenAIEmbeddingsOptions|AzureOpenAIEmbeddingsOptions;
 
     /**
      * Creates a new `OpenAIClient` instance.
      * @param options Options for configuring an `OpenAIClient`.
      */
-    public constructor(options: OpenAIEmbeddingsOptions|AzureOpenAIEmbeddingsOptions) {
+    public constructor(options: OSSEmbeddingsOptions|OpenAIEmbeddingsOptions|AzureOpenAIEmbeddingsOptions) {
         // Check for azure config
         if ((options as AzureOpenAIEmbeddingsOptions).azureApiKey) {
-            this._useAzure = true;
+            this._clientType = ClientType.AzureOpenAI;
             this.options = Object.assign({
                 retryPolicy: [2000, 5000],
                 azureApiVersion: '2023-05-15',
@@ -120,8 +138,13 @@ export class OpenAIEmbeddings implements EmbeddingsModel {
             }
 
             this.options.azureEndpoint = endpoint;
+        } else if ((options as OSSEmbeddingsOptions).ossModel) {
+            this._clientType = ClientType.OSS;
+            this.options = Object.assign({
+                retryPolicy: [2000, 5000]
+            }, options) as OSSEmbeddingsOptions;
         } else {
-            this._useAzure = false;
+            this._clientType = ClientType.OpenAI;
             this.options = Object.assign({
                 retryPolicy: [2000, 5000]
             }, options) as OpenAIEmbeddingsOptions;
@@ -172,9 +195,14 @@ export class OpenAIEmbeddings implements EmbeddingsModel {
      * @private
      */
     protected createEmbeddingRequest(request: CreateEmbeddingRequest): Promise<AxiosResponse<CreateEmbeddingResponse>> {
-        if (this._useAzure) {
+        if (this._clientType == ClientType.AzureOpenAI) {
             const options = this.options as AzureOpenAIEmbeddingsOptions;
             const url = `${options.azureEndpoint}/openai/deployments/${options.azureDeployment}/embeddings?api-version=${options.azureApiVersion!}`;
+            return this.post(url, request);
+        } else if (this._clientType == ClientType.OSS) {
+            const options = this.options as OSSEmbeddingsOptions;
+            const url = `${options.ossEndpoint}/v1/embeddings`;
+            (request as OpenAICreateEmbeddingRequest).model = options.ossModel;
             return this.post(url, request);
         } else {
             const options = this.options as OpenAIEmbeddingsOptions;
@@ -201,10 +229,10 @@ export class OpenAIEmbeddings implements EmbeddingsModel {
         if (!requestConfig.headers['User-Agent']) {
             requestConfig.headers['User-Agent'] = this.UserAgent;
         }
-        if (this._useAzure) {
+        if (this._clientType == ClientType.AzureOpenAI) {
             const options = this.options as AzureOpenAIEmbeddingsOptions;
             requestConfig.headers['api-key'] = options.azureApiKey;
-        } else {
+        } else if (this._clientType == ClientType.OpenAI) {
             const options = this.options as OpenAIEmbeddingsOptions;
             requestConfig.headers['Authorization'] = `Bearer ${options.apiKey}`;
             if (options.organization) {
@@ -224,4 +252,10 @@ export class OpenAIEmbeddings implements EmbeddingsModel {
             return response;
         }
     }
+}
+
+enum ClientType {
+    OpenAI,
+    AzureOpenAI,
+    OSS
 }

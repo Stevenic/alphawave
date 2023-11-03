@@ -121,19 +121,18 @@ export interface BaseOpenAIModelOptions {
 }
 
 /**
- * Options for configuring an `OpenAIModel` to call an OpenAI hosted model.
+ * Options for configuring an `OpenAIModel` to call an OSS hosted model.
  */
 export interface OSSModelOptions extends BaseOpenAIModelOptions {
     /**
      * Model to use for completion.
-     * @remarks
-     * For Azure OpenAI this is the name of the deployment to use.
      */
-    model: string;
+    ossModel: string;
+
     /**
-     * Optional. Endpoint to use when calling the OSS API.
+     * Endpoint to use when calling the OSS API.
      */
-    endpoint?: string;
+    ossEndpoint: string;
 }
 
 /**
@@ -198,8 +197,7 @@ export interface AzureOpenAIModelOptions extends BaseOpenAIModelOptions {
  */
 export class OpenAIModel implements PromptCompletionModel {
     private readonly _httpClient: AxiosInstance;
-    private readonly _useAzure: boolean;
-    private readonly _useOSS: boolean;
+    private readonly _clientType: ClientType;
 
     private readonly UserAgent = 'AlphaWave';
 
@@ -215,7 +213,7 @@ export class OpenAIModel implements PromptCompletionModel {
     public constructor(options: OSSModelOptions|OpenAIModelOptions|AzureOpenAIModelOptions) {
         // Check for azure config
         if ((options as AzureOpenAIModelOptions).azureApiKey) {
-            this._useAzure = true;
+            this._clientType = ClientType.AzureOpenAI;
             this.options = Object.assign({
                 retryPolicy: [2000, 5000],
                 azureApiVersion: '2023-05-15',
@@ -232,15 +230,15 @@ export class OpenAIModel implements PromptCompletionModel {
             }
 
             this.options.azureEndpoint = endpoint;
-        } 
-        else if ((options as OSSModelOptions).model) {
-            this._useOSS = true;
+        }
+        else if ((options as OSSModelOptions).ossModel) {
+            this._clientType = ClientType.OSS;
             this.options = Object.assign({
                 retryPolicy: [2000, 5000]
             }, options) as OSSModelOptions;
         }
         else {
-            this._useAzure = false;
+            this._clientType = ClientType.OpenAI;
             this.options = Object.assign({
                 retryPolicy: [2000, 5000]
             }, options) as OpenAIModelOptions;
@@ -370,9 +368,14 @@ export class OpenAIModel implements PromptCompletionModel {
      * @private
      */
     protected createCompletion(request: CreateCompletionRequest): Promise<AxiosResponse<CreateCompletionResponse>> {
-        if (this._useAzure) {
+        if (this._clientType == ClientType.AzureOpenAI) {
             const options = this.options as AzureOpenAIModelOptions;
             const url = `${options.azureEndpoint}/openai/deployments/${options.azureDeployment}/completions?api-version=${options.azureApiVersion!}`;
+            return this.post(url, request);
+        } else if (this._clientType == ClientType.OSS) {
+            const options = this.options as OSSModelOptions;
+            const url = `${options.ossEndpoint}/v1/completions`;
+            (request as OpenAICreateCompletionRequest).model = options.ossModel;
             return this.post(url, request);
         } else {
             const options = this.options as OpenAIModelOptions;
@@ -386,9 +389,14 @@ export class OpenAIModel implements PromptCompletionModel {
      * @private
      */
     protected createChatCompletion(request: CreateChatCompletionRequest): Promise<AxiosResponse<CreateChatCompletionResponse>> {
-        if (this._useAzure) {
+        if (this._clientType == ClientType.AzureOpenAI) {
             const options = this.options as AzureOpenAIModelOptions;
             const url = `${options.azureEndpoint}/openai/deployments/${options.azureDeployment}/chat/completions?api-version=${options.azureApiVersion!}`;
+            return this.post(url, request);
+        } else if (this._clientType == ClientType.OSS) {
+            const options = this.options as OSSModelOptions;
+            const url = `${options.ossEndpoint}/v1/chat/completions`;
+            (request as OpenAICreateChatCompletionRequest).model = options.ossModel;
             return this.post(url, request);
         } else {
             const options = this.options as OpenAIModelOptions;
@@ -415,10 +423,10 @@ export class OpenAIModel implements PromptCompletionModel {
         if (!requestConfig.headers['User-Agent']) {
             requestConfig.headers['User-Agent'] = this.UserAgent;
         }
-        if (this._useAzure) {
+        if (this._clientType == ClientType.AzureOpenAI) {
             const options = this.options as AzureOpenAIModelOptions;
             requestConfig.headers['api-key'] = options.azureApiKey;
-        } else {
+        } else if (this._clientType == ClientType.OpenAI) {
             const options = this.options as OpenAIModelOptions;
             requestConfig.headers['Authorization'] = `Bearer ${options.apiKey}`;
             if (options.organization) {
@@ -438,4 +446,10 @@ export class OpenAIModel implements PromptCompletionModel {
             return response;
         }
     }
+}
+
+enum ClientType {
+    OpenAI,
+    AzureOpenAI,
+    OSS
 }
