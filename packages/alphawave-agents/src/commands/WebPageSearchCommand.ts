@@ -1,10 +1,6 @@
 import { Tokenizer, UserMessage } from "promptrix";
 import { PromptCompletionModel, EmbeddingsModel, MemoryFork, AlphaWave, JSONResponseValidator } from "alphawave";
-import { LangChainEmbeddings } from "alphawave-langchain";
 import { AxiosRequestConfig } from "axios";
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { MemoryVectorStore } from "langchain/vectorstores/memory";
-import { Document } from "langchain/document";
 import { SchemaBasedCommand } from "../SchemaBasedCommand";
 import { WebUtilities } from "../WebUtilities";
 import { TaskContext } from "../types";
@@ -92,7 +88,7 @@ export class WebPageSearchCommand extends SchemaBasedCommand<WebPageSearchComman
             ].join('\n'));
 
             // Create a response validator for answer evaluator
-            const answerValidator = new JSONResponseValidator<WebPageSearchResult>({
+            const answerValidator = new JSONResponseValidator({
                 type: "object",
                 properties: {
                     answered: {
@@ -162,39 +158,40 @@ export class WebPageSearchCommand extends SchemaBasedCommand<WebPageSearchComman
     }
 
     private async getTextChunks(text: string, input: WebPageSearchCommandInput, tokenizer: Tokenizer, max_tokens: number): Promise<string> {
-        // Use the whole text if it fits
-        const totalLength = tokenizer.encode(text).length;
-        if (totalLength <= max_tokens) {
-            return text;
-        }
+    //     // Use the whole text if it fits
+    //     const totalLength = tokenizer.encode(text).length;
+    //     if (totalLength <= max_tokens) {
+    //         return text;
+    //     }
 
-        // Split the text into chunks
-        const textSplitter = new RecursiveCharacterTextSplitter({
-            chunkSize: this._options.chunk_size ?? 1600,
-            chunkOverlap: this._options.chunk_overlap ?? 200,
-        });
-        const texts = await textSplitter.splitText(text);
+    //     // Split the text into chunks
+    //     const textSplitter = new RecursiveCharacterTextSplitter({
+    //         chunkSize: this._options.chunk_size ?? 1600,
+    //         chunkOverlap: this._options.chunk_overlap ?? 200,
+    //     });
+    //     const texts = await textSplitter.splitText(text);
 
-        // Convert the chunks to documents
-        const docs = texts.map(pageContent => new Document({ pageContent, metadata: [] }));
+    //     // Convert the chunks to documents
+    //     const docs = texts.map(pageContent => new Document({ pageContent, metadata: [] }));
 
-        // Add them to an in-memory vector store
-        const embeddings = new LangChainEmbeddings(this._options.embeddings);
-        const vectorStore = await MemoryVectorStore.fromDocuments(docs, embeddings);
+    //     // Add them to an in-memory vector store
+    //     const embeddings = new LangChainEmbeddings(this._options.embeddings);
+    //     const vectorStore = await MemoryVectorStore.fromDocuments(docs, embeddings);
 
-        // Query for the chunks and add as many will fit into the context
-        let tokenCount = 0;
-        let context = '';
-        const results = await vectorStore.similaritySearch(input.query!, 10);
-        for (const result of results) {
-            const tokens = tokenizer.encode(result.pageContent);
-            if (tokenCount + tokens.length > max_tokens) {
-                break;
-            }
-            context += result.pageContent + "\n";
-            tokenCount += tokens.length;
-        }
+    //     // Query for the chunks and add as many will fit into the context
+    //     let tokenCount = 0;
+    //     let context = '';
+    //     const results = await vectorStore.similaritySearch(input.query!, 10);
+    //     for (const result of results) {
+    //         const tokens = tokenizer.encode(result.pageContent);
+    //         if (tokenCount + tokens.length > max_tokens) {
+    //             break;
+    //         }
+    //         context += result.pageContent + "\n";
+    //         tokenCount += tokens.length;
+    //     }
 
-        return context;
+    //     return context;
+        return '';
     }
 }

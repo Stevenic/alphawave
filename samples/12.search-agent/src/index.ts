@@ -22,7 +22,7 @@ const model = new OpenAIModel({
 const embeddings = new OpenAIEmbeddings({
     apiKey: process.env.OpenAIKey!,
     model: 'text-embedding-ada-002',
-    // logRequests: true,
+    //logRequests: true,
 });
 
 // Create an agent

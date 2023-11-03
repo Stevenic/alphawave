@@ -7,7 +7,7 @@ import { Response } from "./Response";
  * Parses any JSON returned by the model and optionally verifies it against a JSON schema.
  * @template TContent Optional. Type of the content of the message. Defaults to `Record<string, any>`.
  */
-export class JSONResponseValidator<TContent = Record<string, any>> implements PromptResponseValidator {
+export class JSONResponseValidator implements PromptResponseValidator {
 
     /**
      * Creates a new `JSONResponseValidator` instance.

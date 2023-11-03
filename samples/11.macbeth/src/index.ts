@@ -17,6 +17,7 @@ const model = new OpenAIModel({
     temperature: 0.0,
     max_input_tokens: 3000,
     max_tokens: 800,
+    logRequests: true
 });
 
 const initialPrompt = [

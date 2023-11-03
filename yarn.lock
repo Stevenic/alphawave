@@ -352,11 +352,11 @@
   integrity sha512-7NF8pOkHP5o2vpmGgNGcfAeCvOYhGLyA3Z4eBQkT1RJlWu47n63bCs93QfJ2hIAFCil7L5P2IWhs1oToVgrL0Q==
 
 "@babel/runtime@^7.21.0":
-  version "7.22.6"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.22.6.tgz#57d64b9ae3cff1d67eb067ae117dac087f5bd438"
-  integrity sha512-wDb5pWm4WDdF6LFUde3Jl8WzPA+3ZbxYqkC6xAXuD3irdEHN1k0NfTRrJD8ZD378SJ61miMLCqIOXYhd8x+AJQ==
+  version "7.22.15"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.22.15.tgz#38f46494ccf6cf020bd4eed7124b425e83e523b8"
+  integrity sha512-T0O+aa+4w0u06iNmapipJXMV4HoUir03hpx3/YqXXhu9xim3w+dVphjFWl1OH8NbZHw5Lbm9k45drDkgq2VNNA==
   dependencies:
-    regenerator-runtime "^0.13.11"
+    regenerator-runtime "^0.14.0"
 
 "@babel/template@^7.22.5":
   version "7.22.5"
@@ -878,15 +878,30 @@ aggregate-error@^3.0.0:
     clean-stack "^2.0.0"
     indent-string "^4.0.0"
 
-alphawave-langchain@0.6.0:
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/alphawave-langchain/-/alphawave-langchain-0.6.0.tgz#071a1b7f2545e34474c6638e4e66cf86b1c9bbd4"
-  integrity sha512-M4U46kxhf0bAqCRsWuvDsnzXSm/kV+2atQ3/TUuy3wYg1SkE0VtYUnEjSr831HfmXdrYl+ETXnlDVo6NGGKKaA==
+alphawave-agents@~0.7.0:
+  version "0.7.2"
+  resolved "https://registry.yarnpkg.com/alphawave-agents/-/alphawave-agents-0.7.2.tgz#f80e403b4e4bb89042220b3f7b789cf2329cb835"
+  integrity sha512-HhNgNNv+FLc7TMzHGqI9VKFhvVpLe95HaDXVD5FUklUeFFFP+Eg5Sdv0y0UuGv8Mhs0ci/BBjyxG52v7KmoKMQ==
+  dependencies:
+    alphawave "0.7.0"
+    alphawave-langchain "0.7.0"
+    cheerio "^1.0.0-rc.12"
+    jsonschema "1.4.1"
+    langchain "^0.0.95"
+    promptrix "^0.4.2"
+    strict-event-emitter-types "^2.0.0"
+    turndown "^7.1.2"
+    uuid "^9.0.0"
+
+alphawave-langchain@0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/alphawave-langchain/-/alphawave-langchain-0.7.0.tgz#ab8435fc34d0dbb28313c89aea9213544ce0affa"
+  integrity sha512-Jq32mmYhbZGljO/8pqS6npDerW8QegdFCIooEgt0YKJ0IPFMo0DTY8ccOkV9kyTjk64382NYxQq2BDM9yTag8g==
   dependencies:
     "@pinecone-database/pinecone" "^0.1.6"
     "@supabase/postgrest-js" "^1.7.0"
     "@supabase/supabase-js" "^2.24.0"
-    alphawave "0.6.0"
+    alphawave "0.7.0"
     chromadb "^1.5.2"
     hnswlib-node "^1.4.2"
     jsonschema "1.4.1"
@@ -896,10 +911,34 @@ alphawave-langchain@0.6.0:
     typeorm "^0.3.16"
     uuid "^9.0.0"
 
-alphawave@0.6.0:
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/alphawave/-/alphawave-0.6.0.tgz#4fd54d9b77fc7ec9be3bf828c52681c1fe854baa"
-  integrity sha512-2nUoE07LmMp6V4zStwyvpgfJdc75uYD3a5FwRhMCY7sPqCyWatkjtRdJfxsOoIT2A1YiHEGxJJ60a85JIiPRRg==
+alphawave-teams@~0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/alphawave-teams/-/alphawave-teams-0.7.0.tgz#09eae63debcb9fb1cb7131f93ce77bae652c3766"
+  integrity sha512-kTCyc2hvNQgNFnoD8Ry+3hC/UPCCZkwnEEEJnE/sCjLjHG7J2YEBsSqkQMPSaauZuqHVSgj1fOEbawKQJOhppA==
+  dependencies:
+    "@microsoft/teams-ai" "~0.1.0-preview.2"
+    alphawave "0.7.0"
+    botbuilder "^4.19.3"
+    jsonschema "1.4.1"
+    promptrix "^0.4.2"
+
+alphawave@0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/alphawave/-/alphawave-0.7.0.tgz#cfccc2c9f29df3d845424320405d43cc33c87c20"
+  integrity sha512-e3wc8Q/hCPxdkUgpZ6+QMKn6F4TTOOr3ObzwvDbj0O7DzVfkusvNWAJ8GRl/sqjoELpbp842fuQwJvznM3Jjiw==
+  dependencies:
+    axios "^1.3.4"
+    gpt-3-encoder "1.1.4"
+    json-colorizer "^2.2.2"
+    jsonschema "1.4.1"
+    promptrix "^0.4.2"
+    strict-event-emitter-types "^2.0.0"
+    yaml "2.3.1"
+
+alphawave@^0.7.0, alphawave@~0.7.0:
+  version "0.7.1"
+  resolved "https://registry.yarnpkg.com/alphawave/-/alphawave-0.7.1.tgz#65b16b2100217fbb97fa072e2b0dd46ebf822f9d"
+  integrity sha512-48rNcEIP/qrxoze7dOztScRlgSWYgVSwRhiiyksIdsf4jXVVCjVKoGPWWVUbw6LO1Kn72/przsjzfYtI8DNM3g==
   dependencies:
     axios "^1.3.4"
     gpt-3-encoder "1.1.4"
@@ -4824,10 +4863,10 @@ reflect-metadata@^0.1.13:
   resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.1.13.tgz#67ae3ca57c972a2aa1642b10fe363fe32d49dc08"
   integrity sha512-Ts1Y/anZELhSsjMcU605fU9RE4Oi3p5ORujwbIKXfWa+0Zxs510Qrmrce5/Jowq3cHSZSJqBjypxmHarc+vEWg==
 
-regenerator-runtime@^0.13.11:
-  version "0.13.11"
-  resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.13.11.tgz#f6dca3e7ceec20590d07ada785636a90cdca17f9"
-  integrity sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==
+regenerator-runtime@^0.14.0:
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.14.0.tgz#5e19d68eb12d486f797e15a3c6a918f7cec5eb45"
+  integrity sha512-srw17NI0TUWHuGa5CFGGmhfNIeja30WMBfbslPNhf6JrqQlLN5gcrvig1oqPxiVaXb0oW0XRKtH6Nngs5lKCIA==
 
 regex-not@^1.0.0, regex-not@^1.0.2:
   version "1.0.2"
@@ -5746,10 +5785,15 @@ tslib@^1.10.0, tslib@^1.8.0, tslib@^1.8.1:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.14.1.tgz#cf2d38bdc34a134bcaf1091c41f6619e2f672d00"
   integrity sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
 
-tslib@^2.2.0, tslib@^2.5.0:
+tslib@^2.2.0:
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.6.0.tgz#b295854684dbda164e181d259a22cd779dcd7bc3"
   integrity sha512-7At1WUettjcSRHXCyYtTselblcHl9PJFFVKiCAy/bY97+BPZXSQ2wbq0P9s8tK2G7dFQfNnlJnPAiArVBVBsfA==
+
+tslib@^2.5.0:
+  version "2.6.2"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.6.2.tgz#703ac29425e7b37cd6fd456e92404d46d1f3e4ae"
+  integrity sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==
 
 tslint@~5.20.0:
   version "5.20.1"
@@ -5825,7 +5869,7 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typeorm@^0.3.16:
+typeorm@^0.3.16, typeorm@^0.3.17:
   version "0.3.17"
   resolved "https://registry.yarnpkg.com/typeorm/-/typeorm-0.3.17.tgz#a73c121a52e4fbe419b596b244777be4e4b57949"
   integrity sha512-UDjUEwIQalO9tWw9O2A4GU+sT3oyoUXheHJy4ft+RFdnRdQctdQ34L9SqE2p7LdwzafHx1maxT+bqXON+Qnmig==

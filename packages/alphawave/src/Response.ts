@@ -11,7 +11,13 @@ export class Response {
      * @returns Array of parsed objects.
      */
     public static parseAllObjects(text: string): Record<string, any>[] {
-        // First try parsing each line
+        // First try parsing the entire text
+        const obj = this.parseJSON(text);
+        if (obj) {
+            return [obj];
+        }
+
+        // Next try parsing each line
         const objects: Record<string, any>[] = [];
         const lines = text.split('\n');
         if (lines.length > 1) {
@@ -21,14 +27,6 @@ export class Response {
                 if (obj) {
                     objects.push(obj);
                 }
-            }
-        }
-
-        // Next try parsing the entire text
-        if (objects.length == 0) {
-            const obj = this.parseJSON(text);
-            if (obj) {
-                objects.push(obj);
             }
         }
 
