@@ -2,7 +2,7 @@
     "name": "alphawave-langchain",
     "author": "Steven Ickman",
     "description": "Utility classes for integrating AlphaWave and LangChain.",
-    "version": "0.8.1",
+    "version": "0.9.0",
     "license": "MIT",
     "keywords": [
         "ai",
@@ -28,7 +28,7 @@
         "@pinecone-database/pinecone": "^0.1.6",
         "@supabase/postgrest-js": "^1.7.0",
         "@supabase/supabase-js": "^2.24.0",
-        "alphawave": "0.8.1",
+        "alphawave": "0.9.0",
         "chromadb": "^1.5.2",
         "hnswlib-node": "^1.4.2",
         "jsonschema": "1.4.1",
