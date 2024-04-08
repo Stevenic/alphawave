@@ -118,6 +118,20 @@ export interface BaseOpenAIModelOptions {
      * `"auto"` is the default if functions are present.
      */
     function_call?: { name: string; } | 'none' | 'auto';
+
+    /**
+     * Optional. An object specifying the format that the model must output.
+     * @remarks
+     * Only available on select models but lets you guarentee that the model will output a JSON object.
+     */
+    response_format?: { type: 'json_object'; };
+
+    /**
+     * Optional. Specifies the seed to the model should use when generating its response.
+     * @remarks
+     * Only available on select models but can be used to improve the models determinism in its responses.
+     */
+    seed?: number;
 }
 
 /**
@@ -326,7 +340,7 @@ export class OpenAIModel implements PromptCompletionModel {
             // Call chat completion API
             const request: CreateChatCompletionRequest = this.copyOptionsToRequest<CreateChatCompletionRequest>({
                 messages: result.output as ChatCompletionRequestMessage[],
-            }, this.options, ['max_tokens', 'temperature', 'top_p', 'n', 'stream', 'logprobs', 'echo', 'stop', 'presence_penalty', 'frequency_penalty', 'best_of', 'logit_bias', 'user', 'functions', 'function_call']);
+            }, this.options, ['max_tokens', 'temperature', 'top_p', 'n', 'stream', 'logprobs', 'echo', 'stop', 'presence_penalty', 'frequency_penalty', 'best_of', 'logit_bias', 'user', 'functions', 'function_call', 'response_format', 'seed']);
             const response = await this.createChatCompletion(request);
             if (this.options.logRequests) {
                 console.log(Colorize.title('CHAT RESPONSE:'));
@@ -419,6 +433,9 @@ export class OpenAIModel implements PromptCompletionModel {
         }
         if (!requestConfig.headers['Content-Type']) {
             requestConfig.headers['Content-Type'] = 'application/json';
+        }
+        if (!requestConfig.headers['Content-Length']) {
+            requestConfig.headers['Content-Length'] = Buffer.byteLength(JSON.stringify(body));
         }
         if (!requestConfig.headers['User-Agent']) {
             requestConfig.headers['User-Agent'] = this.UserAgent;
