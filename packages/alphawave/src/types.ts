@@ -108,6 +108,11 @@ export interface PromptResponse<TContent = any> {
      * Details about the prompts response.
      */
     details?: PromptResponseDetails;
+
+    /**
+     * The prompt that was generated.
+     */
+    prompt?: Message<TContent>[]|string;
 }
 
 /**

@@ -477,7 +477,10 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
             // - conversation history will be left unchanged if the repair failed.
             // - we never want to save an invalid response to conversation history.
             // - the caller can take further corrective action, including simply re-trying.
+            // - The repair prompt is different from the original prompt so we need to update the
+            //   response to include the original reponses prompt.
             if (repair.status === 'success') {
+                repair.prompt = response.prompt;
                 this.addInputToHistory(memory, history_variable, input!);
                 this.addResponseToHistory(memory, history_variable, repair.message as Message);
             }
@@ -572,6 +575,7 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
         if (remaining_attempts <= 0) {
             return {
                 status: 'invalid_response',
+                prompt: repairResponse.prompt,
                 error: validation.feedback ?? 'The response was invalid. Try another strategy.'
             };
         }

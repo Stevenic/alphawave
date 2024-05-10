@@ -300,7 +300,11 @@ export class OpenAIModel implements PromptCompletionModel {
             // Render prompt
             const result = await prompt.renderAsText(memory, functions, tokenizer, max_input_tokens);
             if (result.tooLong) {
-                return { status: 'too_long', error: `The generated text completion prompt had a length of ${result.length} tokens which exceeded the max_input_tokens of ${max_input_tokens}.` };
+                return { 
+                    status: 'too_long', 
+                    prompt: result.output,
+                    error: `The generated text completion prompt had a length of ${result.length} tokens which exceeded the max_input_tokens of ${max_input_tokens}.`,
+                };
             }
             if (this.options.logRequests) {
                 console.log(Colorize.title('PROMPT:'));
@@ -329,21 +333,38 @@ export class OpenAIModel implements PromptCompletionModel {
                     prompt_tokens: usage?.prompt_tokens ?? -1,
                     total_tokens: usage?.total_tokens ?? -1
                 };
-                return { status: 'success', message: { role: 'assistant', content: completion.text ?? '' }, details };
+                return { 
+                    status: 'success',
+                    prompt: result.output, 
+                    message: { role: 'assistant', content: completion.text ?? '' }, 
+                    details 
+                };
             } else if (response.status == 429) {
                 if (this.options.logRequests) {
                     console.log(Colorize.title('HEADERS:'));
                     console.log(Colorize.output(response.headers));
                 }
-                return { status: 'rate_limited', error: `The text completion API returned a rate limit error.` }
+                return { 
+                    status: 'rate_limited',
+                    prompt: result.output, 
+                    error: `The text completion API returned a rate limit error.` 
+                }
             } else {
-                return { status: 'error', error: `The text completion API returned an error status of ${response.status}: ${response.statusText}` };
+                return { 
+                    status: 'error',
+                    prompt: result.output, 
+                    error: `The text completion API returned an error status of ${response.status}: ${response.statusText}` 
+                };
             }
         } else {
             // Render prompt
             const result = await prompt.renderAsMessages(memory, functions, tokenizer, max_input_tokens);
             if (result.tooLong) {
-                return { status: 'too_long', error: `The generated chat completion prompt had a length of ${result.length} tokens which exceeded the max_input_tokens of ${max_input_tokens}.` };
+                return { 
+                    status: 'too_long',
+                    prompt: result.output, 
+                    error: `The generated chat completion prompt had a length of ${result.length} tokens which exceeded the max_input_tokens of ${max_input_tokens}.` 
+                };
             }
             if (this.options.logRequests) {
                 console.log(Colorize.title('CHAT PROMPT:'));
@@ -376,15 +397,28 @@ export class OpenAIModel implements PromptCompletionModel {
                     prompt_tokens: usage?.prompt_tokens ?? -1,
                     total_tokens: usage?.total_tokens ?? -1
                 };
-                return { status: 'success', message: completion.message ?? { role: 'assistant', content: '' }, details };
+                return { 
+                    status: 'success',
+                    prompt: result.output, 
+                    message: completion.message ?? { role: 'assistant', content: '' }, 
+                    details 
+                };
             } else if (response.status == 429) {
                 if (this.options.logRequests) {
                     console.log(Colorize.title('HEADERS:'));
                     console.log(Colorize.output(response.headers));
                 }
-                return { status: 'rate_limited', error: `The chat completion API returned a rate limit error.` }
+                return { 
+                    status: 'rate_limited',
+                    prompt: result.output, 
+                    error: `The chat completion API returned a rate limit error.` 
+                }
             } else {
-                return { status: 'error', error: `The chat completion API returned an error status of ${response.status}: ${response.statusText}` };
+                return { 
+                    status: 'error',
+                    prompt: result.output, 
+                    error: `The chat completion API returned an error status of ${response.status}: ${response.statusText}` 
+                };
             }
         }
     }
