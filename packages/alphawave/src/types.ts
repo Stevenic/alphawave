@@ -95,11 +95,49 @@ export interface PromptResponse<TContent = any> {
     status: PromptResponseStatus;
 
     /**
-     * Message returned.
-     * @remarks
-     * This will be a `Message<TContent>` object if the status is `success`, otherwise it will be a `string`.
+     * Message containing generated response.
      */
-    message: Message<TContent>|string;
+    message?: Message<TContent>;
+
+    /**
+     * Error message if any
+     */
+    error?: string;
+
+    /**
+     * Details about the prompts response.
+     */
+    details?: PromptResponseDetails;
+}
+
+/**
+ * The reason the prompt finished.
+ */
+export type PromptResponseFinishReason = 'stop' | 'length' | 'function_call' | 'content_filter' | 'other';
+
+/**
+ * Details about the prompt response.
+ */
+export interface PromptResponseDetails {
+    /**
+     * Reason the prompt finished.
+     */
+    finish_reason: PromptResponseFinishReason;
+
+    /**
+     * Number of completion tokens.
+     */
+    completion_tokens: number;
+
+    /**
+     * Number of prompt tokens.
+     */
+    prompt_tokens: number;
+
+    /**
+     * Total number of prompt + completion tokens.
+     */
+    total_tokens: number;
 }
 
 /**

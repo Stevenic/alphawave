@@ -486,7 +486,7 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
         } catch (err: unknown) {
             return {
                 status: 'error',
-                message: err instanceof Error ? err.message : `${err}`
+                error: err instanceof Error ? err.message : `${err}`
             };
         }
     }
@@ -572,7 +572,7 @@ export class AlphaWave extends (EventEmitter as { new(): AlphaWaveEmitter }) {
         if (remaining_attempts <= 0) {
             return {
                 status: 'invalid_response',
-                message: validation.feedback ?? 'The response was invalid. Try another strategy.'
+                error: validation.feedback ?? 'The response was invalid. Try another strategy.'
             };
         }
 

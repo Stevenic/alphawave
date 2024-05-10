@@ -88,36 +88,4 @@ describe("Response", () => {
             assert.equal(obj, undefined);
         });
     });
-
-    describe("parseAllObjects", () => {
-        it("should parse a single JSON object on one line", () => {
-            const objs = Response.parseAllObjects('{ "foo": "bar" }');
-            assert.deepEqual(objs, [{ foo: 'bar' }]);
-        });
-
-        it("should parse a multiple JSON objects on separate lines", () => {
-            const objs = Response.parseAllObjects('{"foo":"bar"}\n{"baz":"qux"}');
-            assert.deepEqual(objs, [{ foo: 'bar' }, { baz: 'qux' }]);
-        });
-
-        it("should skip lines without JSON objects", () => {
-            const objs = Response.parseAllObjects('{"foo":"bar"}\nHello World\nPlan: {"baz":"qux"}');
-            assert.deepEqual(objs, [{ foo: 'bar' }, { baz: 'qux' }]);
-        });
-
-        it("should return the first JSON object on a line", () => {
-            const objs = Response.parseAllObjects('{"foo":"bar"} {"bar":"foo"}\nHello World\nPlan: {"baz":"qux"}');
-            assert.deepEqual(objs, [{ foo: 'bar' }, { baz: 'qux' }]);
-        });
-
-        it("should parse an object that spans multiple lines", () => {
-            const objs = Response.parseAllObjects('{\n"foo": "bar"\n}');
-            assert.deepEqual(objs, [{ foo: 'bar' }]);
-        });
-
-        it("should return an empty array if no objects found", () => {
-            const objs = Response.parseAllObjects('Hello\nWorld');
-            assert.deepEqual(objs, []);
-        });
-    });
 });

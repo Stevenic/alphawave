@@ -32,7 +32,7 @@ class TestValidator implements PromptResponseValidator {
             return Promise.resolve({ type: 'Validation', valid: false, feedback: this.feedback });
         } else if (this.returnContent) {
             this.returnContent = false;
-            return Promise.resolve({ type: 'Validation', valid: true, value: (response.message as Message).content });
+            return Promise.resolve({ type: 'Validation', valid: true, value: response.message?.content });
         } else {
             return Promise.resolve({ type: 'Validation', valid: true });
         }
@@ -200,7 +200,7 @@ describe("AlphaWave", () => {
             model.response = 'Some Error';
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'error');
-            assert.equal(response.message, 'Some Error');
+            assert.equal(response.error, 'Some Error');
             memory.clear();
         });
 
@@ -210,7 +210,7 @@ describe("AlphaWave", () => {
             validator.exception = new Error('Some Exception');
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'error');
-            assert.equal(response.message, 'Some Exception');
+            assert.equal(response.error, 'Some Exception');
             memory.clear();
         });
 
@@ -220,7 +220,7 @@ describe("AlphaWave", () => {
             validator.exception = 'Some Exception' as any;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'error');
-            assert.equal(response.message, 'Some Exception');
+            assert.equal(response.error, 'Some Exception');
             memory.clear();
         });
 
@@ -276,7 +276,7 @@ describe("AlphaWave", () => {
             validator.repairAttempts = 4;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'invalid_response');
-            assert.equal(response.message, validator.feedback);
+            assert.equal(response.error, validator.feedback);
             const history = memory.get('history');
             assert.equal(history, undefined);
             memory.clear();
@@ -288,7 +288,7 @@ describe("AlphaWave", () => {
             validator.clientErrorDuringRepair = true;
             const response = await wave.completePrompt('Hi');
             assert.equal(response.status, 'error');
-            assert.equal(response.message, 'Some Error');
+            assert.equal(response.error, 'Some Error');
             memory.clear();
         });
 

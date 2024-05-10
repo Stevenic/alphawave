@@ -37,54 +37,50 @@ export class JSONResponseValidator implements PromptResponseValidator {
      */
     public validateResponse(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, response: PromptResponse, remaining_attempts: number): Promise<Validation> {
         const message = response.message;
-        const text = typeof message === 'string' ? message : message.content ?? '';
+        const text = message?.content ?? '';
 
         // Parse the response text
-        const parsed = Response.parseAllObjects(text);
-        if (parsed.length == 0) {
-            if (typeof message === 'object' && message.content === null)
+        const parsed = Response.parseJSON(text);
+        if (parsed == undefined) {
+            if (typeof message === 'object' && message.content === null) {
                 return Promise.resolve({
                     type: 'Validation',
                     valid: true,
                     value: null
                 });
-            else
+            } else {
                 return Promise.resolve({
                     type: 'Validation',
                     valid: false,
                     feedback: this.missingJsonFeedback
                 });
+            }
         }
 
         // Validate the response against the schema
+        const value = Response.removeEmptyValuesFromObject(parsed);
         if (this.schema) {
-            let errors: ValidationError[] | undefined;
             const validator = new Validator();
-            for (let i = parsed.length - 1; i >= 0; i--) {
-                const obj = Response.removeEmptyValuesFromObject(parsed[i]);
-                const result = validator.validate(obj, this.schema);
-                if (result.valid) {
-                    return Promise.resolve({
-                        type: 'Validation',
-                        valid: true,
-                        value: obj
-                    });
-                } else if (!errors) {
-                    errors = result.errors
-                }
+            const result = validator.validate(value, this.schema);
+            if (result.valid) {
+                return Promise.resolve({
+                    type: 'Validation',
+                    valid: true,
+                    value
+                });
+            } else {
+                return Promise.resolve({
+                    type: 'Validation',
+                    valid: false,
+                    feedback: `${this.errorFeedback}\n${result.errors!.map(e => this.getErrorFix(e)).join('\n')}`
+                });
             }
-
-            return Promise.resolve({
-                type: 'Validation',
-                valid: false,
-                feedback: `${this.errorFeedback}\n${errors!.map(e => this.getErrorFix(e)).join('\n')}`
-            });
         } else {
             // Return the last object
             return Promise.resolve({
                 type: 'Validation',
                 valid: true,
-                value: parsed[parsed.length - 1]
+                value
             });
         }
     }

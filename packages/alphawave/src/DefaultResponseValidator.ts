@@ -18,7 +18,7 @@ export class DefaultResponseValidator implements PromptResponseValidator {
         return Promise.resolve({
             type: 'Validation',
             valid: true,
-            value: typeof response.message == 'object' ? response.message.content : response.message
+            value: response.status == 'success' ? response.message?.content ?? null : response.error
         });
     }
 }

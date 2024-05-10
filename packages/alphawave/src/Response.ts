@@ -6,34 +6,6 @@ import { encode } from "gpt-3-encoder";
  */
 export class Response {
     /**
-     * Parse all objects from a response string.
-     * @param text Response text to parse.
-     * @returns Array of parsed objects.
-     */
-    public static parseAllObjects(text: string): Record<string, any>[] {
-        // First try parsing the entire text
-        const obj = this.parseJSON(text);
-        if (obj) {
-            return [obj];
-        }
-
-        // Next try parsing each line
-        const objects: Record<string, any>[] = [];
-        const lines = text.split('\n');
-        if (lines.length > 1) {
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-                const obj = this.parseJSON(line);
-                if (obj) {
-                    objects.push(obj);
-                }
-            }
-        }
-
-        return objects;
-    }
-
-    /**
      * Fuzzy JSON parser.
      * @param text text to parse.
      * @returns The parsed object or undefined if the object could not be parsed.

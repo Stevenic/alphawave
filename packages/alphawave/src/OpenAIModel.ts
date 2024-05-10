@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosRequestConfig } from 'axios';
 import { PromptFunctions, PromptMemory, PromptSection, Tokenizer } from "promptrix";
-import { PromptCompletionModel, PromptResponse, ChatCompletionFunction } from "./types";
+import { PromptCompletionModel, PromptResponse, ChatCompletionFunction, PromptResponseDetails } from "./types";
 import { ChatCompletionRequestMessage, CreateChatCompletionRequest, CreateChatCompletionResponse, CreateCompletionRequest, CreateCompletionResponse, OpenAICreateChatCompletionRequest, OpenAICreateCompletionRequest } from "./internals";
 import { Colorize } from "./internals";
 
@@ -97,6 +97,13 @@ export interface BaseOpenAIModelOptions {
      * 2 seconds and the second retry will be after 5 seconds.
      */
     retryPolicy?: number[];
+
+    /**
+     * Optional. Whether to retry if the server closes the connection with ECONNRESET.
+     * @remarks
+     * The default is `true`.
+     */
+    retryConnectionReset?: boolean;
 
     /**
      * Optional. Request options to use when calling the OpenAI API.
@@ -230,6 +237,7 @@ export class OpenAIModel implements PromptCompletionModel {
             this._clientType = ClientType.AzureOpenAI;
             this.options = Object.assign({
                 retryPolicy: [2000, 5000],
+                retryConnectionReset: true,
                 azureApiVersion: '2023-05-15',
             }, options) as AzureOpenAIModelOptions;
 
@@ -248,13 +256,15 @@ export class OpenAIModel implements PromptCompletionModel {
         else if ((options as OSSModelOptions).ossModel) {
             this._clientType = ClientType.OSS;
             this.options = Object.assign({
-                retryPolicy: [2000, 5000]
+                retryPolicy: [2000, 5000],
+                retryConnectionReset: true
             }, options) as OSSModelOptions;
         }
         else {
             this._clientType = ClientType.OpenAI;
             this.options = Object.assign({
-                retryPolicy: [2000, 5000]
+                retryPolicy: [2000, 5000],
+                retryConnectionReset: true
             }, options) as OpenAIModelOptions;
         }
 
@@ -290,7 +300,7 @@ export class OpenAIModel implements PromptCompletionModel {
             // Render prompt
             const result = await prompt.renderAsText(memory, functions, tokenizer, max_input_tokens);
             if (result.tooLong) {
-                return { status: 'too_long', message: `The generated text completion prompt had a length of ${result.length} tokens which exceeded the max_input_tokens of ${max_input_tokens}.` };
+                return { status: 'too_long', error: `The generated text completion prompt had a length of ${result.length} tokens which exceeded the max_input_tokens of ${max_input_tokens}.` };
             }
             if (this.options.logRequests) {
                 console.log(Colorize.title('PROMPT:'));
@@ -312,21 +322,28 @@ export class OpenAIModel implements PromptCompletionModel {
             // Process response
             if (response.status < 300) {
                 const completion = response.data.choices[0];
-                return { status: 'success', message: { role: 'assistant', content: completion.text ?? '' } };
+                const usage = response.data.usage;
+                const details: PromptResponseDetails = {
+                    finish_reason: completion.finish_reason as any,
+                    completion_tokens: usage?.completion_tokens ?? -1,
+                    prompt_tokens: usage?.prompt_tokens ?? -1,
+                    total_tokens: usage?.total_tokens ?? -1
+                };
+                return { status: 'success', message: { role: 'assistant', content: completion.text ?? '' }, details };
             } else if (response.status == 429) {
                 if (this.options.logRequests) {
                     console.log(Colorize.title('HEADERS:'));
                     console.log(Colorize.output(response.headers));
                 }
-                return { status: 'rate_limited', message: `The text completion API returned a rate limit error.` }
+                return { status: 'rate_limited', error: `The text completion API returned a rate limit error.` }
             } else {
-                return { status: 'error', message: `The text completion API returned an error status of ${response.status}: ${response.statusText}` };
+                return { status: 'error', error: `The text completion API returned an error status of ${response.status}: ${response.statusText}` };
             }
         } else {
             // Render prompt
             const result = await prompt.renderAsMessages(memory, functions, tokenizer, max_input_tokens);
             if (result.tooLong) {
-                return { status: 'too_long', message: `The generated chat completion prompt had a length of ${result.length} tokens which exceeded the max_input_tokens of ${max_input_tokens}.` };
+                return { status: 'too_long', error: `The generated chat completion prompt had a length of ${result.length} tokens which exceeded the max_input_tokens of ${max_input_tokens}.` };
             }
             if (this.options.logRequests) {
                 console.log(Colorize.title('CHAT PROMPT:'));
@@ -352,15 +369,22 @@ export class OpenAIModel implements PromptCompletionModel {
             // Process response
             if (response.status < 300) {
                 const completion = response.data.choices[0];
-                return { status: 'success', message: completion.message ?? { role: 'assistant', content: '' } };
+                const usage = response.data.usage;
+                const details: PromptResponseDetails = {
+                    finish_reason: completion.finish_reason as any,
+                    completion_tokens: usage?.completion_tokens ?? -1,
+                    prompt_tokens: usage?.prompt_tokens ?? -1,
+                    total_tokens: usage?.total_tokens ?? -1
+                };
+                return { status: 'success', message: completion.message ?? { role: 'assistant', content: '' }, details };
             } else if (response.status == 429) {
                 if (this.options.logRequests) {
                     console.log(Colorize.title('HEADERS:'));
                     console.log(Colorize.output(response.headers));
                 }
-                return { status: 'rate_limited', message: `The chat completion API returned a rate limit error.` }
+                return { status: 'rate_limited', error: `The chat completion API returned a rate limit error.` }
             } else {
-                return { status: 'error', message: `The chat completion API returned an error status of ${response.status}: ${response.statusText}` };
+                return { status: 'error', error: `The chat completion API returned an error status of ${response.status}: ${response.statusText}` };
             }
         }
     }
@@ -452,7 +476,17 @@ export class OpenAIModel implements PromptCompletionModel {
         }
 
         // Send request
-        const response = await this._httpClient.post(url, body, requestConfig);
+        let response: AxiosResponse<TData>;
+        try {
+            response = await this._httpClient.post(url, body, requestConfig);
+        } catch (error: unknown) {
+            // Map ECONNRESET to a retry
+            if (this.options.retryConnectionReset && error instanceof Error && error.message.includes('ECONNRESET')) {
+                response = { status: 429, statusText: 'ECONNRESET', headers: {}, config: requestConfig, data: {} } as AxiosResponse<TData>;
+            } else {
+                throw error;
+            }
+        }
 
         // Check for rate limit error
         if (response.status == 429 && Array.isArray(this.options.retryPolicy) && retryCount < this.options.retryPolicy.length) {

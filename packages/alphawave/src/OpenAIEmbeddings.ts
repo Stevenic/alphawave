@@ -20,6 +20,13 @@ export interface BaseOpenAIEmbeddingsOptions {
     retryPolicy?: number[];
 
     /**
+     * Optional. Whether to retry if the server closes the connection with ECONNRESET.
+     * @remarks
+     * The default is `true`.
+     */
+    retryConnectionReset?: boolean;
+
+    /**
      * Optional. Request options to use when calling the OpenAI API.
      */
     requestConfig?: AxiosRequestConfig;
@@ -124,6 +131,7 @@ export class OpenAIEmbeddings implements EmbeddingsModel {
             this._clientType = ClientType.AzureOpenAI;
             this.options = Object.assign({
                 retryPolicy: [2000, 5000],
+                retryConnectionReset: true,
                 azureApiVersion: '2023-05-15',
             }, options) as AzureOpenAIEmbeddingsOptions;
 
@@ -141,12 +149,14 @@ export class OpenAIEmbeddings implements EmbeddingsModel {
         } else if ((options as OSSEmbeddingsOptions).ossModel) {
             this._clientType = ClientType.OSS;
             this.options = Object.assign({
-                retryPolicy: [2000, 5000]
+                retryPolicy: [2000, 5000],
+                retryConnectionReset: true
             }, options) as OSSEmbeddingsOptions;
         } else {
             this._clientType = ClientType.OpenAI;
             this.options = Object.assign({
-                retryPolicy: [2000, 5000]
+                retryPolicy: [2000, 5000],
+                retryConnectionReset: true
             }, options) as OpenAIEmbeddingsOptions;
         }
 
@@ -241,7 +251,17 @@ export class OpenAIEmbeddings implements EmbeddingsModel {
         }
 
         // Send request
-        const response = await this._httpClient.post(url, body, requestConfig);
+        let response: AxiosResponse<TData>;
+        try {
+            response = await this._httpClient.post(url, body, requestConfig);
+        } catch (error: unknown) {
+            // Map ECONNRESET to a retry
+            if (this.options.retryConnectionReset && error instanceof Error && error.message.includes('ECONNRESET')) {
+                response = { status: 429, statusText: 'ECONNRESET', headers: {}, config: requestConfig, data: {} } as AxiosResponse<TData>;
+            } else {
+                throw error;
+            }
+        }
 
         // Check for rate limit error
         if (response.status == 429 && Array.isArray(this.options.retryPolicy) && retryCount < this.options.retryPolicy.length) {

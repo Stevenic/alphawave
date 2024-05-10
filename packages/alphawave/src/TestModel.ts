@@ -36,6 +36,14 @@ export class TestModel implements PromptCompletionModel {
      * @returns A `PromptResponse` with the status and message.
      */
     public async completePrompt(memory: PromptMemory, functions: PromptFunctions, tokenizer: Tokenizer, prompt: PromptSection): Promise<PromptResponse> {
-        return { status: this.status, message: this.response };
+        if (this.status === 'success') {
+            if (typeof this.response === 'string') {
+                return { status: this.status, message: { role: 'assistant', content: this.response } };
+            } else {
+                return { status: this.status, message: this.response };
+            }
+        } else {
+            return { status: this.status, error: this.response.toString() };
+        }
     }
 }
