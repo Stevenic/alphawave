@@ -316,10 +316,11 @@ export class OpenAIModel implements PromptCompletionModel {
                 prompt: result.output,
             }, this.options, ['max_tokens', 'temperature', 'top_p', 'n', 'stream', 'logprobs', 'echo', 'stop', 'presence_penalty', 'frequency_penalty', 'best_of', 'logit_bias', 'user']);
             const response = await this.createCompletion(request);
+            const request_duration = Date.now() - startTime;;
             if (this.options.logRequests) {
                 console.log(Colorize.title('RESPONSE:'));
                 console.log(Colorize.value('status', response.status));
-                console.log(Colorize.value('duration', Date.now() - startTime, 'ms'));
+                console.log(Colorize.value('duration', request_duration, 'ms'));
                 console.log(Colorize.output(response.data));
             }
 
@@ -331,7 +332,9 @@ export class OpenAIModel implements PromptCompletionModel {
                     finish_reason: completion.finish_reason as any,
                     completion_tokens: usage?.completion_tokens ?? -1,
                     prompt_tokens: usage?.prompt_tokens ?? -1,
-                    total_tokens: usage?.total_tokens ?? -1
+                    total_tokens: usage?.total_tokens ?? -1,
+                    tokens_per_second: request_duration > 0 && usage?.total_tokens != undefined ? usage?.total_tokens / (request_duration / 1000) : 0,
+                    request_duration,
                 };
                 return { 
                     status: 'success',
@@ -380,10 +383,11 @@ export class OpenAIModel implements PromptCompletionModel {
                 messages: result.output as ChatCompletionRequestMessage[],
             }, this.options, ['max_tokens', 'temperature', 'top_p', 'n', 'stream', 'logprobs', 'echo', 'stop', 'presence_penalty', 'frequency_penalty', 'best_of', 'logit_bias', 'user', 'functions', 'function_call', 'response_format', 'seed']);
             const response = await this.createChatCompletion(request);
+            const request_duration = Date.now() - startTime;
             if (this.options.logRequests) {
                 console.log(Colorize.title('CHAT RESPONSE:'));
                 console.log(Colorize.value('status', response.status));
-                console.log(Colorize.value('duration', Date.now() - startTime, 'ms'));
+                console.log(Colorize.value('duration', request_duration, 'ms'));
                 console.log(Colorize.output(response.data));
             }
 
@@ -395,7 +399,9 @@ export class OpenAIModel implements PromptCompletionModel {
                     finish_reason: completion.finish_reason as any,
                     completion_tokens: usage?.completion_tokens ?? -1,
                     prompt_tokens: usage?.prompt_tokens ?? -1,
-                    total_tokens: usage?.total_tokens ?? -1
+                    total_tokens: usage?.total_tokens ?? -1,
+                    tokens_per_second: request_duration > 0 && usage?.total_tokens != undefined ? usage?.total_tokens / (request_duration / 1000) : 0,
+                    request_duration,
                 };
                 return { 
                     status: 'success',
