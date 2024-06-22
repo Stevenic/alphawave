@@ -154,6 +154,11 @@ export interface OSSModelOptions extends BaseOpenAIModelOptions {
      * Endpoint to use when calling the OSS API.
      */
     ossEndpoint: string;
+
+    /**
+     * Optional. API key to use when calling the endpoint.
+     */
+    apiKey?: string;
 }
 
 /**
@@ -223,11 +228,6 @@ export class OpenAIModel implements PromptCompletionModel {
     private readonly UserAgent = 'AlphaWave';
 
     /**
-     * Options the client was configured with.
-     */
-    public readonly options: OSSModelOptions|OpenAIModelOptions|AzureOpenAIModelOptions;
-
-    /**
      * Creates a new `OpenAIClient` instance.
      * @param options Options for configuring an `OpenAIClient`.
      */
@@ -270,9 +270,14 @@ export class OpenAIModel implements PromptCompletionModel {
 
         // Create client
         this._httpClient = axios.create({
-            validateStatus: (status) => status < 400 || status == 429
+            validateStatus: (status) => true
         });
     }
+
+    /**
+     * Options the client was configured with.
+     */
+    public readonly options: OSSModelOptions|OpenAIModelOptions|AzureOpenAIModelOptions;
 
     /**
      * Creates a new `OpenAIModel` instance with the specified options merged with the current options.
@@ -452,7 +457,7 @@ export class OpenAIModel implements PromptCompletionModel {
             return this.post(url, request);
         } else if (this._clientType == ClientType.OSS) {
             const options = this.options as OSSModelOptions;
-            const url = `${options.ossEndpoint}/v1/completions`;
+            const url = `${options.ossEndpoint}/completions`;
             (request as OpenAICreateCompletionRequest).model = options.ossModel;
             return this.post(url, request);
         } else {
@@ -473,7 +478,7 @@ export class OpenAIModel implements PromptCompletionModel {
             return this.post(url, request);
         } else if (this._clientType == ClientType.OSS) {
             const options = this.options as OSSModelOptions;
-            const url = `${options.ossEndpoint}/v1/chat/completions`;
+            const url = `${options.ossEndpoint}/chat/completions`;
             (request as OpenAICreateChatCompletionRequest).model = options.ossModel;
             return this.post(url, request);
         } else {
@@ -512,6 +517,11 @@ export class OpenAIModel implements PromptCompletionModel {
             requestConfig.headers['Authorization'] = `Bearer ${options.apiKey}`;
             if (options.organization) {
                 requestConfig.headers['OpenAI-Organization'] = options.organization;
+            }
+        } else if (this._clientType == ClientType.OSS) {
+            const options = this.options as OSSModelOptions;
+            if (options.apiKey) {
+                requestConfig.headers['Authorization'] = `Bearer ${options.apiKey}`;
             }
         }
 

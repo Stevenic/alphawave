@@ -48,6 +48,11 @@ export interface OSSEmbeddingsOptions extends BaseOpenAIEmbeddingsOptions {
      * For Azure OpenAI this is the deployment endpoint.
      */
     ossEndpoint: string;
+
+    /**
+     * Optional. API key to use when calling the model.
+     */
+    apiKey?: string;
 }
 
 /**
@@ -211,7 +216,7 @@ export class OpenAIEmbeddings implements EmbeddingsModel {
             return this.post(url, request);
         } else if (this._clientType == ClientType.OSS) {
             const options = this.options as OSSEmbeddingsOptions;
-            const url = `${options.ossEndpoint}/v1/embeddings`;
+            const url = `${options.ossEndpoint}/embeddings`;
             (request as OpenAICreateEmbeddingRequest).model = options.ossModel;
             return this.post(url, request);
         } else {
@@ -247,6 +252,11 @@ export class OpenAIEmbeddings implements EmbeddingsModel {
             requestConfig.headers['Authorization'] = `Bearer ${options.apiKey}`;
             if (options.organization) {
                 requestConfig.headers['OpenAI-Organization'] = options.organization;
+            }
+        } else if (this._clientType == ClientType.OSS) {
+            const options = this.options as OSSEmbeddingsOptions;
+            if (options.apiKey) {
+                requestConfig.headers['Authorization'] = `Bearer ${options.apiKey}`;
             }
         }
 
