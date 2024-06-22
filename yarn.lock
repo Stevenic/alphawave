@@ -404,6 +404,11 @@
   resolved "https://registry.yarnpkg.com/@fortaine/fetch-event-source/-/fetch-event-source-3.0.6.tgz#b8552a2ca2c5202f5699b93a92be0188d422b06e"
   integrity sha512-621GAuLMvKtyZQ3IA6nlDWhV1V/7PGOTNIGLUifxt0KzM+dZIweJ6F3XvQF3QnqeNfS1N7WQ0Kil1Di/lhChEw==
 
+"@google/generative-ai@^0.11.3":
+  version "0.11.3"
+  resolved "https://registry.yarnpkg.com/@google/generative-ai/-/generative-ai-0.11.3.tgz#ed4ffc2f03054314f670fe500718829581a7e4da"
+  integrity sha512-QtQ1hz6rcybbw35uxXlFF26KNnaTVr2oWwnmDkC1M35KdzN4tVc4wakgJp8uXbY9KDCNHksyp11DbFg0HPckZQ==
+
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@istanbuljs/load-nyc-config/-/load-nyc-config-1.1.0.tgz#fd3db1d59ecf7cf121e80650bb86712f9b55eced"
@@ -921,6 +926,19 @@ alphawave-teams@~0.7.0:
     botbuilder "^4.19.3"
     jsonschema "1.4.1"
     promptrix "^0.4.2"
+
+alphawave@0.12.0:
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/alphawave/-/alphawave-0.12.0.tgz#6cc3ae2d15d58abc1e74592918bbd223c1e35575"
+  integrity sha512-hAxonKAa28eIeUo+Srroya5z7Ju9sK60OKAx2GqqxV01sL5xLGAlR16TIHi9YBePEiqOYTrTnYlPk5iSgtIDVQ==
+  dependencies:
+    axios "^1.3.4"
+    gpt-3-encoder "1.1.4"
+    json-colorizer "^2.2.2"
+    jsonschema "1.4.1"
+    promptrix "^0.5.0"
+    strict-event-emitter-types "^2.0.0"
+    yaml "2.3.1"
 
 alphawave@0.7.0:
   version "0.7.0"
