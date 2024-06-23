@@ -98,9 +98,7 @@ export class GoogleGenerativeModel implements PromptCompletionModel {
     public readonly options: GoogleGenerativeModelOptions;
 
     /**
-     * Completes a prompt using the OpenAI API.
-     * @remarks
-     * The API used, Chat Completion or Text Completion, will be determined by the `this.options.completion_type` property.
+     * Completes a prompt.
      * @param memory Memory to use when rendering the prompt.
      * @param functions Functions to use when rendering the prompt.
      * @param tokenizer Tokenizer to use when rendering the prompt.

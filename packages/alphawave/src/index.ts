@@ -1,4 +1,5 @@
 export * from "./AlphaWave";
+export * from "./AnthropicModel";
 export * from "./DefaultResponseValidator";
 export * from "./FunctionResponseValidator";
 export * from "./GoogleGenerativeModel";
