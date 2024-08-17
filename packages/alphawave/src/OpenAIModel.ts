@@ -129,7 +129,7 @@ export interface BaseOpenAIModelOptions {
     /**
      * Optional. An object specifying the format that the model must output.
      * @remarks
-     * Only available on select models but lets you guarentee that the model will output a JSON object.
+     * Only available on select models but lets you guarantee that the model will output a JSON object.
      */
     response_format?: { type: 'json_object'; };
 
