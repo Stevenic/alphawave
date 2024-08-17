@@ -19,6 +19,7 @@ export interface EmbeddingsModel {
  * `success` - The embeddings were successfully created.
  * `error` - An error occurred while creating the embeddings.
  * `rate_limited` - The request was rate limited.
+ * `cancelled` - The request was cancelled.
  */
 export type EmbeddingsResponseStatus = 'success' | 'error' | 'rate_limited' | 'cancelled';
 
@@ -81,8 +82,9 @@ export interface PromptResponseValidator<TContent = any> {
  * `rate_limited` - The request was rate limited.
  * `invalid_response` - The response was invalid.
  * `too_long` - The rendered prompt exceeded the `max_input_tokens` limit.
+ * `cancelled` - The prompt was cancelled.
  */
-export type PromptResponseStatus = 'success' | 'error' | 'rate_limited' | 'invalid_response' | 'too_long';
+export type PromptResponseStatus = 'success' | 'error' | 'rate_limited' | 'invalid_response' | 'too_long' | 'cancelled';
 
 /**
  * Response returned by a `PromptCompletionClient`.
