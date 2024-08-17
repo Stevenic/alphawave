@@ -171,7 +171,6 @@ export class AnthropicModel implements PromptCompletionModel {
                 completion_tokens: output_tokens,
                 prompt_tokens: input_tokens,
                 total_tokens,
-                tokens_per_second: total_tokens / (request_duration / 1000),
                 request_duration,
             };
 

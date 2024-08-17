@@ -338,7 +338,6 @@ export class OpenAIModel implements PromptCompletionModel {
                     completion_tokens: usage?.completion_tokens ?? -1,
                     prompt_tokens: usage?.prompt_tokens ?? -1,
                     total_tokens: usage?.total_tokens ?? -1,
-                    tokens_per_second: request_duration > 0 && usage?.total_tokens != undefined ? usage?.total_tokens / (request_duration / 1000) : 0,
                     request_duration,
                 };
                 return { 
@@ -405,7 +404,6 @@ export class OpenAIModel implements PromptCompletionModel {
                     completion_tokens: usage?.completion_tokens ?? -1,
                     prompt_tokens: usage?.prompt_tokens ?? -1,
                     total_tokens: usage?.total_tokens ?? -1,
-                    tokens_per_second: request_duration > 0 && usage?.total_tokens != undefined ? usage?.total_tokens / (request_duration / 1000) : 0,
                     request_duration,
                 };
                 return { 

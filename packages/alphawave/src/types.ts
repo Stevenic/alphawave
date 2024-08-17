@@ -148,11 +148,6 @@ export interface PromptResponseDetails {
      * Number of milliseconds the prompt took to complete.
      */
     request_duration: number;
-
-    /**
-     * Number of tokens per second the prompt generated.
-     */
-    tokens_per_second: number;
 }
 
 /**

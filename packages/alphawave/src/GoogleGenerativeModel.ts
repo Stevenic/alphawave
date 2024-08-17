@@ -171,7 +171,6 @@ export class GoogleGenerativeModel implements PromptCompletionModel {
                 completion_tokens: usage?.candidatesTokenCount ?? -1,
                 prompt_tokens: usage?.promptTokenCount ?? -1,
                 total_tokens: usage?.totalTokenCount ?? -1,
-                tokens_per_second: request_duration > 0 && usage?.totalTokenCount != undefined ? usage.totalTokenCount / (request_duration / 1000) : 0,
                 request_duration,
             };
             return { 
