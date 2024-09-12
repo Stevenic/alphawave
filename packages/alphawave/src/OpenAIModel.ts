@@ -382,10 +382,13 @@ export class OpenAIModel implements PromptCompletionModel {
                 }
             }
 
+            // Initialize chat completion request
+           
+
             // Call chat completion API
-            const request: CreateChatCompletionRequest = this.copyOptionsToRequest<CreateChatCompletionRequest>({
+            const request: CreateChatCompletionRequest = this.patchBreakingChanges(this.copyOptionsToRequest<CreateChatCompletionRequest>({
                 messages: result.output as ChatCompletionRequestMessage[],
-            }, this.options, ['max_tokens', 'temperature', 'top_p', 'n', 'stream', 'logprobs', 'echo', 'stop', 'presence_penalty', 'frequency_penalty', 'best_of', 'logit_bias', 'user', 'functions', 'function_call', 'response_format', 'seed']);
+            }, this.options, ['max_tokens', 'temperature', 'top_p', 'n', 'stream', 'logprobs', 'echo', 'stop', 'presence_penalty', 'frequency_penalty', 'best_of', 'logit_bias', 'user', 'functions', 'function_call', 'response_format', 'seed']));
             const response = await this.createChatCompletion(request);
             const request_duration = Date.now() - startTime;
             if (this.options.logRequests) {
@@ -443,6 +446,18 @@ export class OpenAIModel implements PromptCompletionModel {
         }
 
         return target as TRequest;
+    }
+
+    protected patchBreakingChanges(request: CreateChatCompletionRequest): CreateChatCompletionRequest {
+        if (this._clientType == ClientType.OpenAI) {
+            const options = this.options as OpenAIModelOptions;
+            if (options.model.startsWith('o1-') && request.max_tokens !== undefined) {
+                (request as any).max_completion_tokens = request.max_tokens;
+                delete request.max_tokens;
+            }
+        }
+
+        return request;
     }
 
     /**
