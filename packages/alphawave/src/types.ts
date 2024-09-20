@@ -189,7 +189,7 @@ export interface Validation<TValue = any> {
 
 
 /**
- *
+ * A function that can be called by a model.
  */
 export interface ChatCompletionFunction {
     /**
@@ -212,4 +212,29 @@ export interface ChatCompletionFunction {
      * about the format.
      */
     parameters: Schema;
+}
+
+/**
+ * JSON schema to specify the desired shape of a models output.
+ */
+export interface JsonSchema {
+    /**
+     * The name of the schema.
+     */
+    name: string;
+
+    /**
+     * The schema definition.
+     */
+    schema: Schema;
+
+    /**
+     * Optional. Description of when the schema should be used.
+     */
+    description?: string;
+
+    /**
+     * Optional. Indicates whether the schema should be strictly enforced.
+     */
+    strict?: boolean;
 }

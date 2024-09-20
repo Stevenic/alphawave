@@ -2,7 +2,7 @@
     "name": "alphawave",
     "author": "Steven Ickman",
     "description": "A very opinionated client for interfacing with Large Language Models.",
-    "version": "0.20.0",
+    "version": "0.21.0",
     "license": "MIT",
     "keywords": [
         "ai",
@@ -27,7 +27,7 @@
     "dependencies": {
         "@anthropic-ai/sdk": "^0.24.0",
         "@google/generative-ai": "^0.11.3",
-        "axios": "^1.3.4",
+        "axios": "^1.7.7",
         "gpt-3-encoder": "1.1.4",
         "json-colorizer": "^2.2.2",
         "jsonschema": "1.4.1",

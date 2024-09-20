@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosRequestConfig } from 'axios';
 import { PromptFunctions, PromptMemory, PromptSection, Tokenizer } from "promptrix";
-import { PromptCompletionModel, PromptResponse, ChatCompletionFunction, PromptResponseDetails } from "./types";
+import { PromptCompletionModel, PromptResponse, ChatCompletionFunction, PromptResponseDetails, JsonSchema } from "./types";
 import { ChatCompletionRequestMessage, CreateChatCompletionRequest, CreateChatCompletionResponse, CreateCompletionRequest, CreateCompletionResponse, OpenAICreateChatCompletionRequest, OpenAICreateCompletionRequest } from "./internals";
 import { Colorize } from "./internals";
 
@@ -131,7 +131,7 @@ export interface BaseOpenAIModelOptions {
      * @remarks
      * Only available on select models but lets you guarantee that the model will output a JSON object.
      */
-    response_format?: { type: 'json_object'; };
+    response_format?: { type: 'json_object' | 'json_schema'; json_schema?: JsonSchema; };
 
     /**
      * Optional. Specifies the seed to the model should use when generating its response.
@@ -451,9 +451,20 @@ export class OpenAIModel implements PromptCompletionModel {
     protected patchBreakingChanges(request: CreateChatCompletionRequest): CreateChatCompletionRequest {
         if (this._clientType == ClientType.OpenAI) {
             const options = this.options as OpenAIModelOptions;
-            if (options.model.startsWith('o1-') && request.max_tokens !== undefined) {
-                (request as any).max_completion_tokens = request.max_tokens;
-                delete request.max_tokens;
+            if (options.model.startsWith('o1-')) {
+                if (request.max_tokens !== undefined) {
+                    (request as any).max_completion_tokens = request.max_tokens;
+                    delete request.max_tokens;
+                }
+                if (request.temperature !== undefined) {
+                    delete request.temperature;
+                }
+                if (request.top_p !== undefined) {
+                    delete request.top_p;
+                }
+                if (request.frequency_penalty !== undefined) {
+                    delete request.frequency_penalty;
+                }
             }
         }
 
