@@ -340,13 +340,21 @@ export class OpenAIModel implements PromptCompletionModel {
                     total_tokens: usage?.total_tokens ?? -1,
                     request_duration,
                 };
+
+                // Ensure content is text
+                // - We sometimes get an object back from the API
+                let content = completion.text ?? '';
+                if (typeof content == 'object') {
+                    content = JSON.stringify(content);
+                }
+                
                 return { 
                     status: 'success',
                     prompt: result.output, 
-                    message: { role: 'assistant', content: completion.text ?? '' }, 
+                    message: { role: 'assistant', content }, 
                     details 
                 };
-            } else if (response.status == 429) {
+            } else if (response.status == 429 && !response.statusText.includes('quota')) {
                 if (this.options.logRequests) {
                     console.log(Colorize.title('HEADERS:'));
                     console.log(Colorize.output(response.headers));
@@ -382,9 +390,6 @@ export class OpenAIModel implements PromptCompletionModel {
                 }
             }
 
-            // Initialize chat completion request
-           
-
             // Call chat completion API
             const request: CreateChatCompletionRequest = this.patchBreakingChanges(this.copyOptionsToRequest<CreateChatCompletionRequest>({
                 messages: result.output as ChatCompletionRequestMessage[],
@@ -409,13 +414,20 @@ export class OpenAIModel implements PromptCompletionModel {
                     total_tokens: usage?.total_tokens ?? -1,
                     request_duration,
                 };
+
+                // Ensure message content is text
+                const message = completion.message ?? { role: 'assistant', content: '' };
+                if (typeof message.content == 'object') {
+                    message.content = JSON.stringify(message.content);
+                }
+
                 return { 
                     status: 'success',
                     prompt: result.output, 
-                    message: completion.message ?? { role: 'assistant', content: '' }, 
+                    message, 
                     details 
                 };
-            } else if (response.status == 429) {
+            } else if (response.status == 429 && !response.statusText.includes('quota')) {
                 if (this.options.logRequests) {
                     console.log(Colorize.title('HEADERS:'));
                     console.log(Colorize.output(response.headers));

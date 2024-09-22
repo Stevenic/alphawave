@@ -2,7 +2,7 @@
     "name": "alphawave",
     "author": "Steven Ickman",
     "description": "A very opinionated client for interfacing with Large Language Models.",
-    "version": "0.21.0",
+    "version": "0.21.2",
     "license": "MIT",
     "keywords": [
         "ai",
