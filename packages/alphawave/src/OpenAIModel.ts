@@ -477,6 +477,16 @@ export class OpenAIModel implements PromptCompletionModel {
                 if (request.frequency_penalty !== undefined) {
                     delete request.frequency_penalty;
                 }
+                if (request.messages[0].role == 'system') {
+                    if (request.messages.length > 1 && request.messages[1].role == 'user') {
+                        // Merge 'system' message with 'user' message
+                        request.messages[1].content = `${request.messages[0].content}\n\n${request.messages[1].content}`;
+                        request.messages.shift();
+                    } else {
+                        // Convert 'system' message to 'user' message
+                        request.messages[0].role = 'user';
+                    }
+                }
             }
         }
 
